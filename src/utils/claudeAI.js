@@ -5,10 +5,10 @@ export async function generateWorkoutWithAI({ profile, score, muscleGroups, scor
     body: JSON.stringify({ profile, score, muscleGroups, scoreTier, duration, trainingStyle }),
   })
 
-  const rawText = await response.text()
   if (!response.ok) {
-    throw new Error(`API ${response.status}: ${rawText}`)
+    const err = await response.text()
+    throw new Error(`API error: ${err}`)
   }
 
-  return JSON.parse(rawText)
+  return await response.json()
 }
