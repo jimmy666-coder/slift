@@ -18,6 +18,7 @@ export default function App() {
   const [screen, setScreen] = useState(SCREEN.AUTH)
   const [user, setUser] = useState(null)
   const [checkinData, setCheckinData] = useState(null)
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -48,10 +49,11 @@ export default function App() {
     try {
       const { data } = await supabase
         .from('tapeprofiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, onboarding')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
       if (data?.onboarding_completed) {
+        setProfile(data?.onboarding ?? null)
         setScreen(SCREEN.CHECKIN)
       } else {
         setScreen(SCREEN.ONBOARDING)
@@ -83,13 +85,26 @@ export default function App() {
   return (
     <>
       {screen === SCREEN.AUTH && <AuthScreen />}
-      {screen === SCREEN.ONBOARDING && <OnboardingScreen userId={user?.id} />}
-      {screen === SCREEN.CHECKIN && <MorningCheckin onComplete={handleCheckinComplete} />}
+      {screen === SCREEN.ONBOARDING && (
+        <OnboardingScreen
+          userId={user?.id}
+          onComplete={async () => {
+            const uid = user?.id
+            if (!uid) throw new Error('Session lost. Please sign in again.')
+            const { data, error } = await supabase.from('tapeprofiles').select('onboarding').eq('id', uid).single()
+            if (error) throw new Error(error.message)
+            setProfile(data?.onboarding ?? null)
+            setScreen(SCREEN.CHECKIN)
+            setCheckinData(null)
+          }}
+        />
+      )}
+      {screen === SCREEN.CHECKIN && <MorningCheckin profile={profile} onComplete={handleCheckinComplete} />}
       {screen === SCREEN.SCORE && checkinData && (
         <RecoveryScore checkinData={checkinData} userId={user?.id} onContinue={() => setScreen(SCREEN.WORKOUT)} />
       )}
       {screen === SCREEN.WORKOUT && checkinData && (
-        <WorkoutScreen checkinData={checkinData} onReset={handleReset} />
+        <WorkoutScreen checkinData={checkinData} onReset={handleReset} profile={profile} />
       )}
     </>
   )

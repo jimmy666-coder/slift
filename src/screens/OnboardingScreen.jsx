@@ -13,7 +13,7 @@ const STEPS = [
   { id: 'equipment', question: 'What equipment do you have?',          type: 'multi',      options: ['Full Gym', 'Dumbbells', 'Barbell & Rack', 'Resistance Bands', 'No Equipment', 'Other'] },
 ]
 
-export function OnboardingScreen({ userId }) {
+export function OnboardingScreen({ userId, onComplete }) {
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [textVal, setTextVal] = useState('')
@@ -53,7 +53,12 @@ export function OnboardingScreen({ userId }) {
   }
 
   async function handleFinish(finalAnswers) {
+    if (!userId) {
+      setError('You must be signed in to finish onboarding.')
+      return
+    }
     setSaving(true)
+    setError('')
     const { error } = await supabase.from('tapeprofiles').upsert({
       id: userId,
       onboarding: finalAnswers,
@@ -64,9 +69,16 @@ export function OnboardingScreen({ userId }) {
     if (error) {
       setError(error.message)
       setSaving(false)
-    } else {
-      window.location.reload()
+      return
     }
+    try {
+      await onComplete?.()
+    } catch (e) {
+      setError(e?.message || 'Could not continue. Please try again.')
+      setSaving(false)
+      return
+    }
+    setSaving(false)
   }
 
   return (

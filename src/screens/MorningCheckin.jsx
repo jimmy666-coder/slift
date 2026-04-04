@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../lib/supabase'
 import { calculateRecoveryScore } from '../utils/workoutEngine'
 
 const SLIDERS = [
@@ -8,9 +9,13 @@ const SLIDERS = [
   { id: 'motivation', label: 'Motivation',      hint: '1 = zero drive · 10 = locked in' },
 ]
 
+const TRAINING_STYLES = ['Force', 'Hypertrophy', 'Endurance']
+const DURATIONS = ['30 min', '45 min', '60 min', '90 min', '2h+']
 const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core']
 
-export function MorningCheckin({ onComplete }) {
+export function MorningCheckin({ onComplete, profile }) {
+  const [trainingStyle, setTrainingStyle] = useState('Hypertrophy')
+  const [duration, setDuration] = useState('60 min')
   const [values, setValues] = useState({ sleep: 5, soreness: 5, energy: 5, motivation: 5 })
   const [selectedGroups, setSelectedGroups] = useState([])
 
@@ -22,12 +27,23 @@ export function MorningCheckin({ onComplete }) {
 
   function handleSubmit() {
     const score = calculateRecoveryScore(values.sleep, values.soreness, values.energy, values.motivation)
-    onComplete({ ...values, muscleGroups: selectedGroups, score })
+    onComplete({ ...values, muscleGroups: selectedGroups, score, duration, trainingStyle })
   }
 
   return (
     <div style={styles.container}>
-      <p style={styles.brand}>SLIFT</p>
+      <div style={{ width: '100%', maxWidth: '480px', display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button
+          type="button"
+          onClick={async () => {
+            await supabase.auth.signOut()
+            window.location.reload()
+          }}
+          style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef444440', borderRadius: '20px', padding: '8px 16px', fontSize: '13px', cursor: 'pointer', fontFamily: 'sans-serif' }}
+        >
+          Log out
+        </button>
+      </div>
       <h1 style={styles.title}>How are you today?</h1>
       <div style={styles.card}>
         <p style={styles.cardLabel}>MORNING CHECK-IN</p>
@@ -42,16 +58,54 @@ export function MorningCheckin({ onComplete }) {
             <input type="range" min="1" max="10" value={values[slider.id]} onChange={e => setValues(prev => ({ ...prev, [slider.id]: Number(e.target.value) }))} style={styles.slider} />
           </div>
         ))}
+        <p style={styles.cardLabel}>TRAINING STYLE</p>
+        <p style={styles.cardHint}>Force, Hypertrophy, or Endurance for today.</p>
+        <div style={styles.groupGrid}>
+          {TRAINING_STYLES.map(s => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setTrainingStyle(s)}
+              style={{
+                ...styles.groupBtn,
+                background: trainingStyle === s ? '#7c3aed' : '#0f0f1a',
+                border: trainingStyle === s ? '2px solid #8b5cf6' : '2px solid #2a2a4a',
+                color: trainingStyle === s ? 'white' : '#9ca3af',
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <p style={styles.cardLabel}>TODAY'S SESSION DURATION</p>
+        <p style={styles.cardHint}>How much time do you have today?</p>
+        <div style={styles.groupGrid}>
+          {DURATIONS.map(d => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDuration(d)}
+              style={{
+                ...styles.groupBtn,
+                background: duration === d ? '#7c3aed' : '#0f0f1a',
+                border: duration === d ? '2px solid #8b5cf6' : '2px solid #2a2a4a',
+                color: duration === d ? 'white' : '#9ca3af',
+              }}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
         <p style={styles.cardLabel}>MUSCLE GROUPS (OPTIONAL)</p>
         <p style={styles.cardHint}>Select the areas you want to train today.</p>
         <div style={styles.groupGrid}>
           {MUSCLE_GROUPS.map(group => (
-            <button key={group} onClick={() => toggleGroup(group)} style={{ ...styles.groupBtn, background: selectedGroups.includes(group) ? '#7c3aed' : '#0f0f1a', border: selectedGroups.includes(group) ? '2px solid #8b5cf6' : '2px solid #2a2a4a', color: selectedGroups.includes(group) ? 'white' : '#9ca3af' }}>
+            <button key={group} type="button" onClick={() => toggleGroup(group)} style={{ ...styles.groupBtn, background: selectedGroups.includes(group) ? '#7c3aed' : '#0f0f1a', border: selectedGroups.includes(group) ? '2px solid #8b5cf6' : '2px solid #2a2a4a', color: selectedGroups.includes(group) ? 'white' : '#9ca3af' }}>
               {group}
             </button>
           ))}
         </div>
-        <button style={styles.button} onClick={handleSubmit}>Calculate my score</button>
+        <button type="button" style={styles.button} onClick={handleSubmit}>Calculate my score</button>
       </div>
     </div>
   )
@@ -59,7 +113,6 @@ export function MorningCheckin({ onComplete }) {
 
 const styles = {
   container: { minHeight: '100vh', background: '#0f0f1a', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px', fontFamily: 'sans-serif' },
-  brand: { color: '#8b5cf6', fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '8px' },
   title: { color: 'white', fontSize: '32px', fontWeight: '900', marginBottom: '24px', textAlign: 'center' },
   card: { background: '#16162a', border: '1px solid #2a2a4a', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '16px' },
   cardLabel: { color: '#8b5cf6', fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', margin: 0 },
