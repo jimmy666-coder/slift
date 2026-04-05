@@ -7,6 +7,10 @@ export default function LandingPage({ onGetStarted }) {
     if (typeof onGetStarted === "function") onGetStarted();
   };
 
+  const scrollToHowItWorks = () => {
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const styles = useMemo(() => ({
     page: { minHeight: "100vh", backgroundColor: "#0A0A0F", color: "#FFFFFF", fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' },
     container: { width: "100%", maxWidth: "1180px", margin: "0 auto", padding: "0 20px", boxSizing: "border-box" },
@@ -36,8 +40,8 @@ export default function LandingPage({ onGetStarted }) {
     badge: { padding: "10px 14px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", color: "#FFFFFF", fontSize: "14px", fontWeight: 700 },
     finalCtaCard: { background: "radial-gradient(circle at top left, rgba(123,63,242,0.16) 0%, #12121A 38%)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "28px", padding: "32px" },
     input: { flex: 1, minHeight: "56px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "#0A0A0F", color: "#FFFFFF", padding: "0 18px", fontSize: "16px", outline: "none" },
-    footer: { padding: "36px 0 52px", color: "#9ca3af", fontSize: "14px", borderTop: "1px solid rgba(255,255,255,0.06)" },
-    footerInner: { display: "flex", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", paddingTop: "20px" },
+    footer: { padding: "36px 0 52px", color: "#9ca3af", fontSize: "14px" },
+    footerInner: { display: "flex", justifyContent: "space-between", gap: "16px", flexWrap: "wrap", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "20px" },
   }), []);
 
   return (
@@ -56,28 +60,25 @@ export default function LandingPage({ onGetStarted }) {
 
       <section style={styles.hero}>
         <div style={styles.container}>
-          <h1 style={styles.heroTitle}>
-            Train smarter.<br />
-            <span style={styles.heroAccent}>Whatever your day throws at you.</span>
-          </h1>
-          <p style={styles.heroSubtitle}>
-            SLIFT adapts your workout to your daily recovery score so you stop guessing and start training with intent. Built for real life — busy schedules, bad nights, and everything in between.
-          </p>
+          <h1 style={styles.heroTitle}>Train smarter.<br /><span style={styles.heroAccent}>Recover better.</span></h1>
+          <p style={styles.heroSubtitle}>SLIFT adapts your workout to your daily recovery score so you stop guessing and start training with intent. Built for real life — busy schedules, bad nights, and everything in between.</p>
           <div style={{ marginTop: 30, display: "flex", gap: 12, flexWrap: "wrap" }}>
             <button style={styles.primaryButton} onClick={goToApp}>Start free — 7 days</button>
-            <button style={styles.secondaryButton}>See how it works</button>
+            <button style={styles.secondaryButton} onClick={scrollToHowItWorks}>See how it works</button>
           </div>
           <div style={styles.heroMeta}>
+            <span>Built for busy, serious lifters</span>
+            <span>•</span>
             <span>2-minute daily check-in</span>
             <span>•</span>
             <span>Recovery-based programming</span>
             <span>•</span>
-            <span>For men & women 21+</span>
+            <span>Smart training for real life</span>
           </div>
         </div>
       </section>
 
-      <section style={styles.section}>
+      <section id="how-it-works" style={styles.section}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>How SLIFT works</h2>
           <p style={styles.sectionSubtitle}>Three simple steps. No noise, no generic programming.</p>
@@ -129,12 +130,12 @@ export default function LandingPage({ onGetStarted }) {
         <div style={styles.container}>
           <div style={styles.socialCard}>
             <h2 style={styles.sectionTitle}>Join the Slifters</h2>
-            <p style={styles.sectionSubtitle}>Built for people who want intelligent training in the middle of real life.</p>
+            <p style={styles.sectionSubtitle}>Built for people who want intelligent training in the middle of real life. Not fantasy schedules. Just better decisions, day after day.</p>
             <div style={styles.socialBadges}>
               <div style={styles.badge}>Busy professionals</div>
               <div style={styles.badge}>Parents who still train</div>
               <div style={styles.badge}>Shift workers</div>
-              <div style={styles.badge}>Men & women 21+</div>
+              <div style={styles.badge}>Smart training for real life</div>
               <div style={styles.badge}>Recovery-based training</div>
             </div>
           </div>
