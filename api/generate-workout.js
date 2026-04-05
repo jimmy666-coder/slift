@@ -5,73 +5,66 @@ export default async function handler(req, res) {
 
   const { profile, score, muscleGroups, scoreTier, duration, trainingStyle } = req.body
 
-  const sessionDuration = duration || profile?.duration || '60 min'
-  const styleToday = trainingStyle || 'Hypertrophy'
+  const exerciseCount = score <= 4 ? 2 : score <= 6 ? 3 : score <= 7 ? 4 : score <= 8.4 ? 5 : 6
+  const maxByDuration = duration === '30 min' ? 3 : duration === '45 min' ? 4 : duration === '60 min' ? 5 : duration === '90 min' ? 6 : 7
+  const finalCount = Math.min(exerciseCount, maxByDuration)
 
-  const prompt = `You are SLIFT, an elite AI fitness coach. Generate a personalized workout as JSON only.
+  const prompt = `You are SLIFT, an elite AI fitness coach. Generate a workout as JSON only.
 
-USER DATA:
-- Score: ${score}/10 (${scoreTier})
-- Today's training style: ${styleToday} (Force = heavy strength, Hypertrophy = muscle growth, Endurance = conditioning & higher reps)
-- Session duration (today): ${sessionDuration}
-- Muscles: ${muscleGroups?.join(', ') || 'Full Body'}
-- Profile goal (onboarding): ${profile?.goal || 'Hypertrophy'}
+USER:
+- Name: ${profile?.name || 'Slifter'}
+- Goal: ${profile?.goal || 'Hypertrophy'}
 - Level: ${profile?.level || 'Intermediate'}
-- Equipment: ${profile?.equipment?.join(', ') || 'Full Gym'}
+- Equipment: ${Array.isArray(profile?.equipment) ? profile.equipment.join(', ') : 'Full Gym'}
 
-TRAINING RULES BY TODAY'S STYLE (${styleToday}):
-- Force: 3–6 reps, RPE 8–9, rest 3–5 min, prioritize heavy compounds, lower total sets
-- Hypertrophy: 8–12 reps, RPE 7–8, rest 60–120s, compounds plus isolation
-- Endurance: 12–20+ reps or timed intervals, RPE 6–7, rest 30–60s, circuits/supersets when appropriate
+TODAY:
+- Recovery Score: ${score}/10 (${scoreTier})
+- Muscles: ${Array.isArray(muscleGroups) && muscleGroups.length > 0 ? muscleGroups.join(', ') : 'Full Body'}
+- Duration: ${duration || '60 min'}
+- Style: ${trainingStyle || 'Hypertrophy'}
 
-TRAINING RULES BY PROFILE GOAL (context):
-- Strength-oriented goals: bias lower reps, heavier loads when score allows
-- Mass Gain / Hypertrophy goals: bias volume and moderate rest
-- Cut: bias density, shorter rest, supersets when score allows
-- Body Recomposition: moderate volume, balanced rest
+STRICT RULES:
+- Generate EXACTLY ${finalCount} main exercises + 1 bonus
+- Goal Strength: sets 3-5, reps 3-5, rest 3-5 min, RPE 8-9
+- Goal Hypertrophy: sets 3-4, reps 8-12, rest 60-90s, RPE 7-8
+- Goal Cut: sets 3, reps 12-15, rest 45-60s, RPE 7
+- Score below 5: light weights, no failure
+- Score above 8: push hard, progressive overload
+- Bonus for score below 6: isCardio true, name "10 min light cardio or walk"
+- Bonus for score above 6: isCardio false, one optional extra exercise
 
-EXERCISE COUNT BY DURATION:
-- 30 min: max 3 exercises + optional 5–10 min cardio at medium/high intensity
-- 45 min: max 4 exercises
-- 60 min: max 5 exercises + full warm-up
-- 90 min: max 6 exercises + accessories + finisher
-- 2h+: max 7 exercises + accessories + finisher
-
-EXERCISE COUNT BY SCORE:
-- Score 1–4: 2 light exercises + cardio bonus (10 min walk)
-- Score 4–6: 3 exercises + cardio bonus (10 min light cardio)
-- Score 6–7: 4 exercises + optional bonus exercise
-- Score 7–8.4: 5 exercises + optional bonus exercise
-- Score 8.5–10: 6 exercises + optional bonus exercise, push heavy where appropriate
-
-Always respect BOTH duration and score rules. Use the lower exercise count if they conflict. Match intensity to today's training style (${styleToday}) and recovery score.
-
-Respond with ONLY this JSON, no markdown, no explanation:
+Respond with ONLY valid JSON, no markdown:
 {"warmup":"string","note":"string","exercises":[{"group":"string","name":"string","sets":3,"reps":"string","rest":"string","rpe":"string","isBonus":false,"isCardio":false}]}`
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 1500,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  })
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-haiku-20241022',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    })
 
-  const data = await response.json()
+    const data = await response.json()
 
-  if (!response.ok) {
-    return res.status(500).json({ error: data })
+    if (!response.ok) {
+      console.error('Anthropic error:', JSON.stringify(data))
+      return res.status(500).json({ error: data })
+    }
+
+    const text = data.content[0].text
+    const clean = text.replace(/```json|```/g, '').trim()
+    const workout = JSON.parse(clean)
+    return res.status(200).json(workout)
+
+  } catch (err) {
+    console.error('Server error:', err.message)
+    return res.status(500).json({ error: err.message })
   }
-
-  const text = data.content[0].text
-  const clean = text.replace(/```json|```/g, '').trim()
-  const workout = JSON.parse(clean)
-
-  return res.status(200).json(workout)
 }
