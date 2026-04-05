@@ -4,7 +4,7 @@ import { AuthScreen } from './screens/AuthScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
 import MorningCheckin from './screens/MorningCheckin'
 import { RecoveryScore } from './screens/RecoveryScore'
-import { WorkoutScreen } from './screens/WorkoutScreen'
+import WorkoutScreen from './screens/WorkoutScreen'
 
 const SCREEN = {
   AUTH: 'auth',

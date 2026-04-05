@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { getScoreTier, getWorkoutExercises } from '../utils/workoutEngine'
 import { generateWorkoutWithAI } from '../utils/claudeAI'
 
-export function WorkoutScreen({ checkinData, profile, onReset }) {
+export default function WorkoutScreen({ checkinData, profile, onReset }) {
   const { score, muscleGroups, duration, trainingStyle } = checkinData
   const tier = getScoreTier(score)
   const [workout, setWorkout] = useState(null)
@@ -12,7 +12,6 @@ export function WorkoutScreen({ checkinData, profile, onReset }) {
   useEffect(() => {
     async function load() {
       console.log('Calling Claude API...')
-      await new Promise(r => setTimeout(r, 3000))
       console.log('Profile:', profile)
       try {
         const result = await generateWorkoutWithAI({

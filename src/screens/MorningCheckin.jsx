@@ -35,14 +35,15 @@ const METRICS = [
 ];
 
 const MUSCLE_GROUPS = [
-  "Full body",
-  "Upper body",
-  "Lower body",
-  "Push",
-  "Pull",
+  "Chest",
+  "Back",
   "Legs",
+  "Shoulders",
+  "Arms",
   "Core",
-  "Mobility",
+  "full body",
+  "upper body",
+  "lower body",
 ];
 
 const DURATIONS = ["30 min", "45 min", "60 min", "90 min", "2h+"];
@@ -52,7 +53,7 @@ const defaultValues = {
   soreness: 5,
   energy: 5,
   motivation: 5,
-  muscleGroups: ["Full body"],
+  muscleGroups: ["full body"],
   duration: "45 min",
 };
 
@@ -235,8 +236,23 @@ export default function MorningCheckin({
     form.motivation
   );
 
-  const scoreColor =
-    score >= 8 ? COLORS.accent : score >= 6 ? "#d1d5db" : "#9ca3af";
+  let scoreColor = "#9ca3af";
+  let scoreStyle = {};
+
+  if (score <= 4) {
+    scoreColor = "#f97316"; // orange
+  } else if (score <= 6) {
+    scoreColor = "#eab308"; // jaune
+  } else if (score <= 7) {
+    scoreColor = "#d1d5db"; // blanc
+  } else if (score <= 8.4) {
+    scoreColor = "#00FF9C"; // vert
+  } else {
+    scoreColor = "#00FF9C"; // vert vif + glow
+    scoreStyle = {
+      textShadow: "0 0 12px rgba(0,255,156,0.6)",
+    };
+  }
 
   const handleComplete = () => {
     if (loading) return;
@@ -280,6 +296,7 @@ export default function MorningCheckin({
                   style={{
                     ...styles.readinessValue,
                     color: scoreColor,
+                    ...scoreStyle,
                     transform: "translateZ(0)",
                   }}
                 >
