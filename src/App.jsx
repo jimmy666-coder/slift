@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from './lib/supabase'
 import { AuthScreen } from './screens/AuthScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
@@ -18,36 +18,36 @@ const SCREEN = {
 
 export default function App() {
   const [screen, setScreen] = useState(SCREEN.LANDING)
+  const screenRef = useRef(screen)
   const [user, setUser] = useState(null)
   const [checkinData, setCheckinData] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const destinationAfterLandingRef = useRef(SCREEN.ONBOARDING)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        checkOnboarding(session.user.id)
+    screenRef.current = screen
+  }, [screen])
+
+  async function loadTapeProfileForLanding(userId) {
+    try {
+      const { data } = await supabase
+        .from('tapeprofiles')
+        .select('onboarding_completed, onboarding')
+        .eq('id', userId)
+        .maybeSingle()
+      if (data?.onboarding_completed) {
+        setProfile(data?.onboarding ?? null)
+        destinationAfterLandingRef.current = SCREEN.CHECKIN
       } else {
-        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
-        setLoading(false)
+        destinationAfterLandingRef.current = SCREEN.ONBOARDING
       }
-    })
+    } catch {
+      destinationAfterLandingRef.current = SCREEN.ONBOARDING
+    }
+  }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        checkOnboarding(session.user.id)
-      } else {
-        setUser(null)
-        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  async function checkOnboarding(userId) {
+  async function navigateAfterSignIn(userId) {
     try {
       const { data } = await supabase
         .from('tapeprofiles')
@@ -64,6 +64,46 @@ export default function App() {
       setScreen(SCREEN.ONBOARDING)
     }
     setLoading(false)
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user)
+        if (screenRef.current === SCREEN.LANDING) {
+          loadTapeProfileForLanding(session.user.id).then(() => setLoading(false))
+        } else {
+          navigateAfterSignIn(session.user.id)
+        }
+      } else {
+        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
+        setLoading(false)
+      }
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        if (screenRef.current === SCREEN.LANDING) {
+          loadTapeProfileForLanding(session.user.id)
+        } else {
+          navigateAfterSignIn(session.user.id)
+        }
+      } else {
+        setUser(null)
+        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  function handleGetStartedFromLanding() {
+    if (!user) {
+      setScreen(SCREEN.AUTH)
+      return
+    }
+    setScreen(destinationAfterLandingRef.current)
   }
 
   function handleCheckinComplete(data) {
@@ -86,7 +126,7 @@ export default function App() {
 
   return (
     <>
-      {screen === SCREEN.LANDING && <LandingPage onGetStarted={() => setScreen(SCREEN.AUTH)} />}
+      {screen === SCREEN.LANDING && <LandingPage onGetStarted={handleGetStartedFromLanding} />}
       {screen !== SCREEN.LANDING && screen === SCREEN.AUTH && <AuthScreen />}
       {screen !== SCREEN.LANDING && screen === SCREEN.ONBOARDING && (
         <OnboardingScreen
