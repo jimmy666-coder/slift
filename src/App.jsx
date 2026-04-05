@@ -5,8 +5,10 @@ import { OnboardingScreen } from './screens/OnboardingScreen'
 import MorningCheckin from './screens/MorningCheckin'
 import { RecoveryScore } from './screens/RecoveryScore'
 import WorkoutScreen from './screens/WorkoutScreen'
+import LandingPage from './screens/LandingPage'
 
 const SCREEN = {
+  LANDING: 'landing',
   AUTH: 'auth',
   ONBOARDING: 'onboarding',
   CHECKIN: 'checkin',
@@ -15,7 +17,7 @@ const SCREEN = {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState(SCREEN.AUTH)
+  const [screen, setScreen] = useState(SCREEN.LANDING)
   const [user, setUser] = useState(null)
   const [checkinData, setCheckinData] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -27,7 +29,7 @@ export default function App() {
         setUser(session.user)
         checkOnboarding(session.user.id)
       } else {
-        setScreen(SCREEN.AUTH)
+        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
         setLoading(false)
       }
     })
@@ -38,7 +40,7 @@ export default function App() {
         checkOnboarding(session.user.id)
       } else {
         setUser(null)
-        setScreen(SCREEN.AUTH)
+        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
       }
     })
 
@@ -84,8 +86,9 @@ export default function App() {
 
   return (
     <>
-      {screen === SCREEN.AUTH && <AuthScreen />}
-      {screen === SCREEN.ONBOARDING && (
+      {screen === SCREEN.LANDING && <LandingPage onGetStarted={() => setScreen(SCREEN.AUTH)} />}
+      {screen !== SCREEN.LANDING && screen === SCREEN.AUTH && <AuthScreen />}
+      {screen !== SCREEN.LANDING && screen === SCREEN.ONBOARDING && (
         <OnboardingScreen
           userId={user?.id}
           onComplete={async () => {
@@ -99,16 +102,16 @@ export default function App() {
           }}
         />
       )}
-      {screen === SCREEN.CHECKIN && (
+      {screen !== SCREEN.LANDING && screen === SCREEN.CHECKIN && (
         <MorningCheckin
           onComplete={handleCheckinComplete}
           initialValues={profile?.duration ? { duration: profile.duration } : {}}
         />
       )}
-      {screen === SCREEN.SCORE && checkinData && (
+      {screen !== SCREEN.LANDING && screen === SCREEN.SCORE && checkinData && (
         <RecoveryScore checkinData={checkinData} userId={user?.id} onContinue={() => setScreen(SCREEN.WORKOUT)} />
       )}
-      {screen === SCREEN.WORKOUT && checkinData && (
+      {screen !== SCREEN.LANDING && screen === SCREEN.WORKOUT && checkinData && (
         <WorkoutScreen checkinData={checkinData} onReset={handleReset} profile={profile} />
       )}
     </>
