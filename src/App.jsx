@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import { AuthScreen } from './screens/AuthScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
-import { MorningCheckin } from './screens/MorningCheckin'
+import MorningCheckin from './screens/MorningCheckin'
 import { RecoveryScore } from './screens/RecoveryScore'
 import { WorkoutScreen } from './screens/WorkoutScreen'
 
@@ -99,7 +99,12 @@ export default function App() {
           }}
         />
       )}
-      {screen === SCREEN.CHECKIN && <MorningCheckin profile={profile} onComplete={handleCheckinComplete} />}
+      {screen === SCREEN.CHECKIN && (
+        <MorningCheckin
+          onComplete={handleCheckinComplete}
+          initialValues={profile?.duration ? { duration: profile.duration } : {}}
+        />
+      )}
       {screen === SCREEN.SCORE && checkinData && (
         <RecoveryScore checkinData={checkinData} userId={user?.id} onContinue={() => setScreen(SCREEN.WORKOUT)} />
       )}
