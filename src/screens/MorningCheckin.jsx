@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
 import { calculateRecoveryScore } from "../utils/workoutEngine";
 
 const COLORS = {
@@ -80,7 +81,7 @@ function SelectButton({ children, selected, pressed, onPressStart, onPressEnd, o
   );
 }
 
-export default function MorningCheckin({ onComplete, loading = false, initialValues = {} }) {
+export default function MorningCheckin({ onComplete, loading = false, initialValues = {}, onGoHome }) {
   const mergedInitialValues = useMemo(() => ({
     ...defaultValues, ...initialValues,
     muscleGroups: Array.isArray(initialValues?.muscleGroups) && initialValues.muscleGroups.length > 0
@@ -119,11 +120,21 @@ export default function MorningCheckin({ onComplete, loading = false, initialVal
     }
   };
 
+  const handleLogout = async () => {
+    try { await supabase.auth.signOut(); } catch (e) { console.error(e); } finally { window.location.reload(); }
+  };
+
   return (
     <div style={styles.screen}>
       <div style={styles.container}>
         <div style={styles.topBlock}>
-          <div style={styles.kicker}>SLIFT</div>
+          <div style={styles.topBar}>
+            <div style={styles.kicker}>SLIFT</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button type="button" onClick={() => { if (typeof onGoHome === "function") onGoHome(); }} style={styles.homeButton}>Home</button>
+              <button type="button" onClick={handleLogout} style={styles.logoutButton}>Log out</button>
+            </div>
+          </div>
           <h1 style={styles.title}>How are you today?</h1>
           <p style={styles.subtitle}>Quick check-in. Clean input, better training. Small ritual, better output.</p>
         </div>
@@ -216,7 +227,10 @@ const styles = {
   screen: { minHeight: "100vh", background: COLORS.bg, color: COLORS.text, padding: "24px 16px 48px" },
   container: { width: "100%", maxWidth: 880, margin: "0 auto" },
   topBlock: { padding: "12px 4px 28px" },
-  kicker: { fontSize: 13, fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: COLORS.primary, marginBottom: 10 },
+  topBar: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 10 },
+  kicker: { fontSize: 13, fontWeight: 800, letterSpacing: "0.24em", textTransform: "uppercase", color: COLORS.primary, marginBottom: 0 },
+  homeButton: { appearance: "none", border: `1px solid ${COLORS.border}`, background: "rgba(255,255,255,0.03)", color: COLORS.muted, borderRadius: 14, padding: "8px 12px", minHeight: 36, fontSize: 12, fontWeight: 700, cursor: "pointer", WebkitTapHighlightColor: "transparent" },
+  logoutButton: { appearance: "none", border: "1px solid rgba(249,115,22,0.3)", background: "rgba(255,255,255,0.03)", color: "#f97316", borderRadius: 14, padding: "8px 12px", minHeight: 36, fontSize: 12, fontWeight: 700, cursor: "pointer", WebkitTapHighlightColor: "transparent" },
   title: { margin: 0, fontSize: "clamp(2.2rem, 5vw, 3.6rem)", lineHeight: 1.02, fontWeight: 800, letterSpacing: "-0.04em" },
   subtitle: { margin: "14px 0 0", fontSize: 15, lineHeight: 1.65, color: COLORS.muted, maxWidth: 620 },
   content: { display: "flex", flexDirection: "column", gap: 18 },

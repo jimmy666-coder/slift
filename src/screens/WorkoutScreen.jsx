@@ -66,7 +66,7 @@ function ExerciseCard({ exercise, accentColor, optional = false }) {
   );
 }
 
-export default function WorkoutScreen({ checkinData, profile, onReset }) {
+export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome }) {
   const [loading, setLoading] = useState(true);
   const [workout, setWorkout] = useState(null);
 
@@ -129,8 +129,15 @@ export default function WorkoutScreen({ checkinData, profile, onReset }) {
             <div style={styles.brandMark}>S</div>
             <div style={styles.brandText}>SLIFT</div>
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button type="button" onClick={onReset} style={styles.secondaryButton}>New check-in</button>
+            <button
+              type="button"
+              onClick={() => { if (typeof onGoHome === "function") onGoHome(); }}
+              style={styles.homeButton}
+            >
+              Home
+            </button>
             <button type="button" onClick={handleLogout} style={{ ...styles.secondaryButton, color: "#f97316", borderColor: "rgba(249,115,22,0.3)" }}>Log out</button>
           </div>
         </div>
@@ -175,6 +182,7 @@ const styles = {
   brandMark: { width: 38, height: 38, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #7B3FF2 0%, #00FF9C 140%)", color: "#0A0A0F", fontWeight: 900, fontSize: 16 },
   brandText: { fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em" },
   secondaryButton: { appearance: "none", border: `1px solid ${COLORS.border}`, background: "rgba(255,255,255,0.03)", color: COLORS.text, borderRadius: 16, padding: "12px 16px", minHeight: 46, fontSize: 14, fontWeight: 700, cursor: "pointer", WebkitTapHighlightColor: "transparent" },
+  homeButton: { appearance: "none", border: `1px solid ${COLORS.border}`, background: "rgba(255,255,255,0.03)", color: COLORS.muted, borderRadius: 14, padding: "8px 12px", minHeight: 36, fontSize: 12, fontWeight: 700, cursor: "pointer", WebkitTapHighlightColor: "transparent" },
   heroCard: { background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 28, padding: 24 },
   scoreBadge: { display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 36, padding: "8px 14px", borderRadius: 999, border: `1px solid ${COLORS.border}`, fontSize: 14, fontWeight: 800, marginBottom: 16 },
   sessionTitle: { margin: 0, fontSize: "clamp(2rem, 5vw, 3.2rem)", lineHeight: 1, fontWeight: 850, letterSpacing: "-0.05em" },

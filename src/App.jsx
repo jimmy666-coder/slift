@@ -146,13 +146,14 @@ export default function App() {
         <MorningCheckin
           onComplete={handleCheckinComplete}
           initialValues={profile?.duration ? { duration: profile.duration } : {}}
+          onGoHome={() => setScreen(SCREEN.LANDING)}
         />
       )}
       {screen !== SCREEN.LANDING && screen === SCREEN.SCORE && checkinData && (
         <RecoveryScore checkinData={checkinData} userId={user?.id} onContinue={() => setScreen(SCREEN.WORKOUT)} />
       )}
       {screen !== SCREEN.LANDING && screen === SCREEN.WORKOUT && checkinData && (
-        <WorkoutScreen checkinData={checkinData} onReset={handleReset} profile={profile} />
+        <WorkoutScreen checkinData={checkinData} onReset={handleReset} profile={profile} onGoHome={() => setScreen(SCREEN.LANDING)} />
       )}
     </>
   )
