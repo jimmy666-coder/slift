@@ -114,7 +114,7 @@ export default function WorkoutScreen({ checkinData, profile, onReset }) {
     return (
       <div style={styles.loadingScreen}>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={{ width: 48, height: 48, borderRadius: "50%", border: "4px solid #1a1a2e", borderTop: "4px solid #7B3FF2", animation: "spin 1.5s linear infinite", marginBottom: 18 }} />
+        <div style={{ width: 48, height: 48, borderRadius: "50%", border: "4px solid #1a1a2e", borderTop: "4px solid #7B3FF2", animation: "spin 2.5s linear infinite", marginBottom: 18 }} />
         <div style={{ fontSize: 20, fontWeight: 700, color: "#FFFFFF", marginBottom: 8, textAlign: "center" }}>SLIFT is building your session...</div>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#7B3FF2", textAlign: "center" }}>Powered by AI</div>
       </div>
