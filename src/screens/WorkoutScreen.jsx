@@ -44,12 +44,59 @@ export default function WorkoutScreen({ checkinData, profile, onReset }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0f0f1a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
-        <div style={{ width: '48px', height: '48px', border: '4px solid #2a2a4a', borderTop: '4px solid #8b5cf6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <p style={{ color: 'white', fontSize: '20px', fontWeight: '700', fontFamily: 'sans-serif' }}>SLIFT is building your session...</p>
-        <p style={{ color: '#8b5cf6', fontSize: '13px', letterSpacing: '2px', fontFamily: 'sans-serif' }}>POWERED BY AI</p>
+      <>
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      </div>
+        <div
+          style={{
+            minHeight: '100vh',
+            width: '100%',
+            boxSizing: 'border-box',
+            background: '#0A0A0F',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 24,
+            padding: 24,
+          }}
+        >
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              border: '4px solid #1a1a2e',
+              borderTop: '4px solid #7B3FF2',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <p
+              style={{
+                margin: 0,
+                color: '#FFFFFF',
+                fontSize: 20,
+                fontWeight: 700,
+                fontFamily: 'sans-serif',
+                textAlign: 'center',
+              }}
+            >
+              SLIFT is building your session...
+            </p>
+            <p
+              style={{
+                margin: 0,
+                color: '#7B3FF2',
+                fontSize: 15,
+                fontWeight: 600,
+                fontFamily: 'sans-serif',
+              }}
+            >
+              Powered by AI
+            </p>
+          </div>
+        </div>
+      </>
     )
   }
 

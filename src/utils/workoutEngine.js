@@ -60,6 +60,28 @@ const EXERCISE_DB = {
       { name: 'Overhead Tricep Extension' },
     ],
   },
+  'Biceps': {
+    type: 'small',
+    exercises: [
+      { name: 'Barbell Curl' },
+      { name: 'Hammer Curl' },
+      { name: 'Incline Dumbbell Curl' },
+      { name: 'Concentration Curl' },
+      { name: 'Cable Curl' },
+      { name: 'Preacher Curl' },
+    ]
+  },
+  'Triceps': {
+    type: 'small',
+    exercises: [
+      { name: 'Tricep Pushdown' },
+      { name: 'Skull Crushers' },
+      { name: 'Overhead Tricep Extension' },
+      { name: 'Close Grip Bench Press' },
+      { name: 'Dips (tricep focus)' },
+      { name: 'Cable Kickback' },
+    ]
+  },
   Core: {
     type: 'small',
     exercises: [
