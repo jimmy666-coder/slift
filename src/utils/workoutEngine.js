@@ -102,6 +102,8 @@ const EXERCISE_DB = {
       { name: 'Pull-ups' },
       { name: 'Overhead Press' },
       { name: 'Barbell Row' },
+      { name: 'Barbell Curl' },
+      { name: 'Tricep Pushdown' },
       { name: 'Plank' },
     ]
   },
@@ -113,6 +115,8 @@ const EXERCISE_DB = {
       { name: 'Overhead Press' },
       { name: 'Pull-ups' },
       { name: 'Dips' },
+      { name: 'Barbell Curl' },
+      { name: 'Tricep Pushdown' },
       { name: 'Face Pulls' },
     ]
   },
