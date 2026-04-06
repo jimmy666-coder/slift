@@ -71,6 +71,40 @@ const EXERCISE_DB = {
       { name: 'Dead Bug' },
     ],
   },
+  'Full body': {
+    type: 'large',
+    exercises: [
+      { name: 'Barbell Squat' },
+      { name: 'Deadlift' },
+      { name: 'Bench Press' },
+      { name: 'Pull-ups' },
+      { name: 'Overhead Press' },
+      { name: 'Barbell Row' },
+      { name: 'Plank' },
+    ]
+  },
+  'Upper body': {
+    type: 'large',
+    exercises: [
+      { name: 'Bench Press' },
+      { name: 'Barbell Row' },
+      { name: 'Overhead Press' },
+      { name: 'Pull-ups' },
+      { name: 'Dips' },
+      { name: 'Face Pulls' },
+    ]
+  },
+  'Lower body': {
+    type: 'large',
+    exercises: [
+      { name: 'Barbell Squat' },
+      { name: 'Romanian Deadlift' },
+      { name: 'Leg Press' },
+      { name: 'Walking Lunges' },
+      { name: 'Leg Curl' },
+      { name: 'Calf Raises' },
+    ]
+  },
 }
 
 function getIntensity(score) {
