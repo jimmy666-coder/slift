@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/generate-workout.js": {
+      "maxDuration": 30
+    }
+  }
+}
