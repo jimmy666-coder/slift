@@ -5,9 +5,14 @@ export default async function handler(req, res) {
 
   const { profile, score, muscleGroups, scoreTier, duration, trainingStyle } = req.body
 
-  const exerciseCount = score <= 4 ? 2 : score <= 6 ? 3 : score <= 7 ? 4 : score <= 8.4 ? 5 : 6
-  const maxByDuration = duration === '30 min' ? 3 : duration === '45 min' ? 4 : duration === '60 min' ? 5 : duration === '90 min' ? 6 : 7
-  const finalCount = Math.min(exerciseCount, maxByDuration)
+  const byScore = score <= 4 ? 2 : score <= 6 ? 3 : score <= 7 ? 4 : score <= 8.4 ? 5 : 6
+  const byDuration = duration === '30 min' ? 2 : duration === '45 min' ? 3 : duration === '60 min' ? 4 : duration === '90 min' ? 5 : 6
+  const finalCount = Math.min(byScore, byDuration)
+
+  const lowScoreNoteRule =
+    Number(score) < 5
+      ? `- If score is below 5, add this note (include in the "note" field): "With a recovery score below 5, we recommend keeping your session to 30-45 min max today."\n`
+      : ''
 
   const prompt = `You are SLIFT, an elite AI fitness coach. Generate a workout as JSON only.
 
@@ -24,7 +29,10 @@ TODAY:
 - Style: ${trainingStyle || 'Hypertrophy'}
 
 STRICT RULES:
-- Generate EXACTLY ${finalCount} main exercises + 1 bonus
+- IMPORTANT: Generate EXACTLY ${finalCount} main exercises.
+No more, no less. This is a hard limit.
+- Also generate exactly 1 bonus exercise (not counted in the ${finalCount} main exercises).
+${lowScoreNoteRule}
 - Goal Strength: sets 3-5, reps 3-5, rest 3-5 min, RPE 8-9
 - Goal Hypertrophy: sets 3-4, reps 8-12, rest 60-90s, RPE 7-8
 - Goal Cut: sets 3, reps 12-15, rest 45-60s, RPE 7
