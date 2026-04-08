@@ -66,7 +66,7 @@ function ExerciseCard({ exercise, accentColor, optional = false }) {
   );
 }
 
-export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome, onHistory }) {
+export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome, onHistory, onComplete }) {
   const [loading, setLoading] = useState(true);
   const [workout, setWorkout] = useState(null);
 
@@ -175,6 +175,14 @@ export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome,
           <div style={styles.sectionEyebrow}>Cool-down</div>
           <div style={styles.sectionText}>{workout?.cooldown || "5-8 min cool-down: breathing, light mobility"}</div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => { if (typeof onComplete === "function") onComplete(); }}
+          style={styles.completeButton}
+        >
+          Complete session
+        </button>
       </div>
     </div>
   );
@@ -205,4 +213,22 @@ const styles = {
   exerciseIndexDot: { width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,0.16)", flexShrink: 0 },
   exerciseName: { fontSize: 26, lineHeight: 1.1, fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 10 },
   exerciseMeta: { fontSize: 15, color: COLORS.muted, lineHeight: 1.6, fontWeight: 600 },
+  completeButton: {
+    appearance: "none",
+    border: "none",
+    borderRadius: 18,
+    padding: "16px 22px",
+    minHeight: 56,
+    width: "100%",
+    maxWidth: 400,
+    alignSelf: "center",
+    marginTop: 8,
+    background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.accent} 140%)`,
+    color: "#0A0A0F",
+    fontSize: 16,
+    fontWeight: 800,
+    letterSpacing: "-0.02em",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
 };

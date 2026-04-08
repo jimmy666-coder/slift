@@ -7,6 +7,7 @@ import RecoveryScore from './screens/RecoveryScore'
 import WorkoutScreen from './screens/WorkoutScreen'
 import LandingPage from './screens/LandingPage'
 import HistoryScreen from './screens/HistoryScreen'
+import WorkoutComplete from './screens/WorkoutComplete'
 
 const SCREEN = {
   LANDING: 'landing',
@@ -16,6 +17,7 @@ const SCREEN = {
   SCORE: 'score',
   WORKOUT: 'workout',
   HISTORY: 'history',
+  COMPLETE: 'complete',
 }
 
 export default function App() {
@@ -161,6 +163,14 @@ export default function App() {
           onReset={handleReset}
           profile={profile}
           onGoHome={() => setScreen(SCREEN.LANDING)}
+          onHistory={() => setScreen(SCREEN.HISTORY)}
+          onComplete={() => setScreen(SCREEN.COMPLETE)}
+        />
+      )}
+      {screen !== SCREEN.LANDING && screen === SCREEN.COMPLETE && checkinData && (
+        <WorkoutComplete
+          checkinData={checkinData}
+          onReset={handleReset}
           onHistory={() => setScreen(SCREEN.HISTORY)}
         />
       )}
