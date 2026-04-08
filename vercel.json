@@ -1,5 +1,9 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    {
+      "source": "/((?!api/|src/|assets/|node_modules/|@vite/|@react-refresh/|@fs/|favicon\\.ico).*)",
+      "destination": "/index.html"
+    }
   ]
 }

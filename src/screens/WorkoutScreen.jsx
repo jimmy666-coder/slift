@@ -66,7 +66,7 @@ function ExerciseCard({ exercise, accentColor, optional = false }) {
   );
 }
 
-export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome }) {
+export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome, onHistory }) {
   const [loading, setLoading] = useState(true);
   const [workout, setWorkout] = useState(null);
 
@@ -131,6 +131,13 @@ export default function WorkoutScreen({ checkinData, profile, onReset, onGoHome 
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <button type="button" onClick={onReset} style={styles.secondaryButton}>New check-in</button>
+            <button
+              type="button"
+              onClick={() => { if (typeof onHistory === "function") onHistory(); }}
+              style={styles.homeButton}
+            >
+              History
+            </button>
             <button
               type="button"
               onClick={() => { if (typeof onGoHome === "function") onGoHome(); }}
