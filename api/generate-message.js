@@ -1,11 +1,11 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
-  
-  const { scores } = JSON.parse(req.body)
-  const avg = (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1)
-  
-  const prompt = `You are SLIFT, a bienveillant AI fitness coach. 
-Write a SHORT (2-3 sentences max), warm and motivating message in English 
+
+  const { scores, userId } = req.body
+  const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
+
+  const prompt = `You are SLIFT, a bienveillant AI fitness coach.
+Write a SHORT (2-3 sentences max), warm and motivating message in English
 based on this user's last 7 recovery scores: ${scores.join(', ')}.
 Average: ${avg}/10.
 Be encouraging, personal, and positive. Never negative. Focus on progress.`
@@ -23,7 +23,7 @@ Be encouraging, personal, and positive. Never negative. Focus on progress.`
       messages: [{ role: 'user', content: prompt }],
     }),
   })
-  
+
   const data = await response.json()
   const text = data.content[0].text
   res.status(200).send(text)
