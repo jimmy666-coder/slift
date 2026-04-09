@@ -317,54 +317,83 @@ export default function HistoryScreen({ userId, onBack }) {
         </div>
       </div>
 
-      {/* METRICS */}
+      {/* METRIC AVERAGES */}
       <div
         style={{
-          ...styles.metricGrid,
+          marginBottom: 20,
           animation: "slideUp 0.6s ease forwards",
           animationDelay: "0.2s",
         }}
       >
-        {[
-          ["sleep", "#7B3FF2"],
-          ["soreness", "#f97316"],
-          ["energy", "#00FF9C"],
-          ["motivation", "#eab308"],
-        ].map(([m, color], i) => (
-          <div key={i} style={styles.metricCard}>
-            <div style={styles.metricTitle}>
-              {m.toUpperCase()}
+        <div style={styles.sectionHeading}>7-day metric averages</div>
+        <div style={styles.metricGrid}>
+          {[
+            ["sleep", "#7B3FF2"],
+            ["soreness", "#f97316"],
+            ["energy", "#00FF9C"],
+            ["motivation", "#eab308"],
+          ].map(([m], i) => (
+            <div key={i} style={styles.metricCard}>
+              <div style={styles.metricTitle}>
+                {m.toUpperCase()}
+              </div>
+              <div style={styles.metricValue}>{metricAvg(m)}</div>
             </div>
-            <div style={styles.metricValue}>
-              {metricAvg(m)}
-            </div>
-            <div style={styles.miniBarsRow}>
-              {last7.map((d, idx) => (
-                <div key={idx} style={styles.miniBarColumn}>
-                  <div style={styles.barScore}>{d.score}</div>
-                  <div style={styles.miniBarsTrack}>
-                    <div
-                      style={{
-                        ...styles.miniBarFill,
-                        background: color,
-                        height: `${(d[m] || 0) * 10}%`,
-                        animation:
-                          "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
-                      }}
-                    />
-                  </div>
-                  <div style={styles.barLabel}>
-                    {new Date(d.created_at).toLocaleDateString("en", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
+      {/* LAST 7 SESSIONS — bar charts */}
+      {last7.length > 0 && (
+        <div
+          style={{
+            ...styles.card,
+            animation: "slideUp 0.6s ease forwards",
+            animationDelay: "0.22s",
+          }}
+        >
+          <div style={styles.sectionHeading}>Last 7 sessions</div>
+          {[
+            ["sleep", "#7B3FF2"],
+            ["soreness", "#f97316"],
+            ["energy", "#00FF9C"],
+            ["motivation", "#eab308"],
+          ].map(([m, color], i) => (
+            <div
+              key={i}
+              style={{
+                marginTop: i === 0 ? 4 : 18,
+                paddingTop: i === 0 ? 0 : 16,
+                borderTop:
+                  i === 0 ? "none" : `1px solid ${COLORS.border}`,
+              }}
+            >
+              <div style={styles.chartMetricLabel}>{m.toUpperCase()}</div>
+              <div style={styles.miniBarsRow}>
+                {last7.map((d, idx) => (
+                  <div key={idx} style={styles.miniBarColumn}>
+                    <div style={styles.barScore}>{d.score}</div>
+                    <div style={styles.miniBarsTrack}>
+                      <div
+                        style={{
+                          ...styles.miniBarFill,
+                          background: color,
+                          height: `${(d[m] || 0) * 10}%`,
+                          animation:
+                            "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                        }}
+                      />
+                    </div>
+                    <div style={styles.barLabel}>
+                      Session {last7.length - idx}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 4-WEEK TREND */}
       {weeklyData.length > 0 && (
@@ -549,6 +578,21 @@ const styles = {
     fontSize: 40,
     fontWeight: 900,
   },
+  sectionHeading: {
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: COLORS.muted,
+    marginBottom: 14,
+  },
+  chartMetricLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: COLORS.text,
+    marginBottom: 10,
+    letterSpacing: "0.04em",
+  },
   metricGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2,1fr)",
@@ -605,7 +649,7 @@ const styles = {
   },
   barLabel: {
     textAlign: "center",
-    fontSize: 10,
+    fontSize: 9,
     color: COLORS.muted,
     lineHeight: 1.2,
   },
