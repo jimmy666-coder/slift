@@ -54,7 +54,14 @@ export default function HistoryScreen({ userId, onBack }) {
         .eq("id", userId)
         .single();
 
-      setProfile(profileData || {});
+      setProfile({
+        firstName: profileData?.first_name,
+        lastName: profileData?.last_name,
+        nickname: profileData?.nickname,
+        country: profileData?.country,
+        weight: profileData?.weight,
+        height: profileData?.height,
+      });
     }
     loadProfile();
   }, [userId]);
@@ -123,6 +130,7 @@ export default function HistoryScreen({ userId, onBack }) {
 
       const res = await fetch("/api/generate-message", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scores: last7.map((d) => d.score),
           userId,
@@ -138,7 +146,17 @@ export default function HistoryScreen({ userId, onBack }) {
   }, [userId, last7.length]);
 
   const saveProfile = async () => {
-    await supabase.from("tapeprofiles").update(profile).eq("id", userId);
+    await supabase
+      .from("tapeprofiles")
+      .update({
+        first_name: profile.firstName,
+        last_name: profile.lastName,
+        nickname: profile.nickname,
+        country: profile.country,
+        weight: profile.weight,
+        height: profile.height,
+      })
+      .eq("id", userId);
   };
 
   const avatarLetter =
@@ -298,6 +316,15 @@ export default function HistoryScreen({ userId, onBack }) {
                       "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
                   }}
                 />
+              ))}
+            </div>
+            <div style={styles.barLabelRow}>
+              {last7.map((d, idx) => (
+                <div key={idx} style={styles.barLabel}>
+                  {new Date(d.created_at).toLocaleDateString("en", {
+                    weekday: "short",
+                  })}
+                </div>
               ))}
             </div>
           </div>
@@ -481,6 +508,19 @@ const styles = {
   miniBar: {
     flex: 1,
     borderRadius: 4,
+  },
+  barLabelRow: {
+    display: "flex",
+    gap: 4,
+    marginTop: 6,
+    alignItems: "flex-start",
+  },
+  barLabel: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 10,
+    color: COLORS.muted,
+    lineHeight: 1.2,
   },
   aiBadge: {
     display: "inline-flex",
