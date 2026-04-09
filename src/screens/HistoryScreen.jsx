@@ -121,7 +121,7 @@ export default function HistoryScreen({ userId, onBack }) {
         ).toFixed(1)
       : 0;
 
-  /* ================= AI ================= */
+  /* ================= PULSE ================= */
   useEffect(() => {
     async function loadMessage() {
       if (!last7.length) return;
@@ -331,7 +331,7 @@ export default function HistoryScreen({ userId, onBack }) {
         ))}
       </div>
 
-      {/* AI CARD */}
+      {/* PULSE CARD */}
       <div
         style={{
           ...styles.card,
@@ -346,7 +346,7 @@ export default function HistoryScreen({ userId, onBack }) {
               animation: "pulse 1.5s infinite",
             }}
           />
-          AI
+          PULSE
         </div>
 
         {loadingAI ? (
@@ -357,7 +357,7 @@ export default function HistoryScreen({ userId, onBack }) {
               marginTop: 10,
             }}
           >
-            AI analyzing your recovery trend...
+            PULSE analyzing your recovery trend...
           </div>
         ) : (
           <div
