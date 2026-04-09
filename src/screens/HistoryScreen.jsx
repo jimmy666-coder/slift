@@ -355,7 +355,8 @@ export default function HistoryScreen({ userId, onBack }) {
                   </div>
                   <div style={styles.barLabel}>
                     {new Date(d.created_at).toLocaleDateString("en", {
-                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
                     })}
                   </div>
                 </div>
