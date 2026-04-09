@@ -65,19 +65,21 @@ export default function HistoryScreen({ userId, onBack }) {
 
   useEffect(() => {
     async function loadProfile() {
-      const { data: profileData } = await supabase
+      const { data: p } = await supabase
         .from("tapeprofiles")
         .select("*")
         .eq("id", userId)
         .single();
 
+      if (!p) return;
+
       setProfile({
-        firstName: profileData?.first_name,
-        lastName: profileData?.last_name,
-        nickname: profileData?.nickname,
-        country: profileData?.country,
-        weight: profileData?.weight,
-        height: profileData?.height,
+        firstName: p.first_name,
+        lastName: p.last_name,
+        nickname: p.nickname,
+        country: p.country,
+        weight: p.weight,
+        height: p.height,
       });
     }
     loadProfile();
@@ -199,21 +201,44 @@ export default function HistoryScreen({ userId, onBack }) {
   /* ================= UI ================= */
   return (
     <div style={styles.screen}>
-      <style>{`
-        @keyframes slideUp { 
-          from { transform: translateY(20px); opacity: 0; } 
-          to { transform: translateY(0); opacity: 1; } 
+      <style>
+        {`
+        @keyframes slideUp {
+          from {
+            transform: translateY(20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
-        @keyframes growBar { from { height: 0; } }
-        @keyframes pulse { 
-          0%,100% { opacity:.6; transform:scale(.9); } 
-          50% { opacity:1; transform:scale(1); } 
+        @keyframes growBar {
+          from {
+            height: 0;
+          }
         }
-        @keyframes scan { 
-          0% { background-position: -200% 0; } 
-          100% { background-position: 200% 0; } 
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 0.6;
+            transform: scale(0.9);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
-      `}</style>
+        @keyframes scan {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+      `}
+      </style>
 
       {/* TOP LIGHT */}
       <div
@@ -318,14 +343,17 @@ export default function HistoryScreen({ userId, onBack }) {
       </div>
 
       {/* METRIC AVERAGES */}
-      <div
-        style={{
-          marginBottom: 20,
-          animation: "slideUp 0.6s ease forwards",
-          animationDelay: "0.2s",
-        }}
-      >
-        <div style={styles.sectionHeading}>7-day metric averages</div>
+      <div style={{ marginBottom: 20 }}>
+        <div
+          style={{
+            ...styles.sectionHeading,
+            animation: "slideUp 0.6s ease forwards",
+            animationDelay: "0.2s",
+            opacity: 0,
+          }}
+        >
+          7-day metric averages
+        </div>
         <div style={styles.metricGrid}>
           {[
             ["sleep", "#7B3FF2"],
@@ -333,7 +361,15 @@ export default function HistoryScreen({ userId, onBack }) {
             ["energy", "#00FF9C"],
             ["motivation", "#eab308"],
           ].map(([m], i) => (
-            <div key={i} style={styles.metricCard}>
+            <div
+              key={i}
+              style={{
+                ...styles.metricCard,
+                animation: "slideUp 0.6s ease forwards",
+                animationDelay: `${0.2 + i * 0.04}s`,
+                opacity: 0,
+              }}
+            >
               <div style={styles.metricTitle}>
                 {m.toUpperCase()}
               </div>
@@ -370,25 +406,28 @@ export default function HistoryScreen({ userId, onBack }) {
             >
               <div style={styles.chartMetricLabel}>{m.toUpperCase()}</div>
               <div style={styles.miniBarsRow}>
-                {last7.map((d, idx) => (
-                  <div key={idx} style={styles.miniBarColumn}>
-                    <div style={styles.barScore}>{d.score}</div>
-                    <div style={styles.miniBarsTrack}>
-                      <div
-                        style={{
-                          ...styles.miniBarFill,
-                          background: color,
-                          height: `${(d[m] || 0) * 10}%`,
-                          animation:
-                            "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
-                        }}
-                      />
+                {last7.map((d, idx) => {
+                  const indexFromOldest = last7.length - 1 - idx;
+                  return (
+                    <div key={idx} style={styles.miniBarColumn}>
+                      <div style={styles.barScore}>{d.score}</div>
+                      <div style={styles.miniBarsTrack}>
+                        <div
+                          style={{
+                            ...styles.miniBarFill,
+                            background: color,
+                            height: `${(d[m] || 0) * 10}%`,
+                            animation:
+                              "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                          }}
+                        />
+                      </div>
+                      <div style={styles.barLabel}>
+                        S{indexFromOldest + 1}
+                      </div>
                     </div>
-                    <div style={styles.barLabel}>
-                      Session {last7.length - idx}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
