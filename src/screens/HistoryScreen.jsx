@@ -124,18 +124,35 @@ export default function HistoryScreen({ userId, onBack }) {
   /* ================= LAST 7 ================= */
   const last7 = data.slice(0, 7);
 
+  const metricSeries = {
+    sleep: [...last7].reverse().map((d) => d.sleep),
+    soreness: [...last7].reverse().map((d) => d.soreness),
+    energy: [...last7].reverse().map((d) => d.energy),
+    motivation: [...last7].reverse().map((d) => d.motivation),
+  };
+
+  const tableHeaderStyle = {
+    padding: "8px 4px",
+    textAlign: "center",
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#9ca3af",
+    borderRight: "1px solid rgba(255,255,255,0.06)",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+  };
+
+  const tableCellStyle = {
+    padding: "10px 4px",
+    textAlign: "center",
+    fontSize: 14,
+    borderRight: "1px solid rgba(255,255,255,0.06)",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+  };
+
   const avg7 =
     last7.length > 0
       ? (
           last7.reduce((acc, d) => acc + d.score, 0) /
-          last7.length
-        ).toFixed(1)
-      : 0;
-
-  const metricAvg = (key) =>
-    last7.length
-      ? (
-          last7.reduce((acc, d) => acc + (d[key] || 0), 0) /
           last7.length
         ).toFixed(1)
       : 0;
@@ -211,11 +228,6 @@ export default function HistoryScreen({ userId, onBack }) {
           to {
             transform: translateY(0);
             opacity: 1;
-          }
-        }
-        @keyframes growBar {
-          from {
-            height: 0;
           }
         }
         @keyframes pulse {
@@ -342,97 +354,100 @@ export default function HistoryScreen({ userId, onBack }) {
         </div>
       </div>
 
-      {/* METRIC AVERAGES */}
-      <div style={{ marginBottom: 20 }}>
+      <div
+        style={{
+          background: "#12121A",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: 20,
+          padding: 18,
+          marginTop: 20,
+          animation: "slideUp .8s ease forwards",
+        }}
+      >
         <div
           style={{
-            ...styles.sectionHeading,
-            animation: "slideUp 0.6s ease forwards",
-            animationDelay: "0.2s",
-            opacity: 0,
+            fontSize: 13,
+            fontWeight: 900,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "#7B3FF2",
+            marginBottom: 14,
           }}
         >
-          7-day metric averages
+          Last 7 sessions breakdown
         </div>
-        <div style={styles.metricGrid}>
-          {[
-            ["sleep", "#7B3FF2"],
-            ["soreness", "#f97316"],
-            ["energy", "#00FF9C"],
-            ["motivation", "#eab308"],
-          ].map(([m], i) => (
-            <div
-              key={i}
-              style={{
-                ...styles.metricCard,
-                animation: "slideUp 0.6s ease forwards",
-                animationDelay: `${0.2 + i * 0.04}s`,
-                opacity: 0,
-              }}
-            >
-              <div style={styles.metricTitle}>
-                {m.toUpperCase()}
-              </div>
-              <div style={styles.metricValue}>{metricAvg(m)}</div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "140px repeat(7, 1fr)",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            borderLeft: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <div style={tableHeaderStyle}></div>
+          {[...Array(7)].map((_, i) => (
+            <div key={i} style={tableHeaderStyle}>
+              S{i + 1}
             </div>
+          ))}
+          {[
+            { label: "Sleep", key: "sleep", inverted: false },
+            { label: "Soreness", key: "soreness", inverted: true },
+            { label: "Energy", key: "energy", inverted: false },
+            { label: "Motivation", key: "motivation", inverted: false },
+          ].map((metric) => (
+            <React.Fragment key={metric.key}>
+              <div
+                style={{
+                  ...tableCellStyle,
+                  fontWeight: 800,
+                  color: "#FFFFFF",
+                  textAlign: "left",
+                  paddingLeft: 12,
+                }}
+              >
+                {metric.label}
+              </div>
+              {Array.from({ length: 7 }, (_, colIndex) => {
+                const value = (metricSeries[metric.key] || [])[colIndex];
+                const v = Number(value ?? 0);
+                let color;
+                if (metric.inverted) {
+                  color =
+                    v >= 7
+                      ? "#f97316"
+                      : v >= 5
+                        ? "#eab308"
+                        : "#00FF9C";
+                } else {
+                  color =
+                    v >= 7
+                      ? "#00FF9C"
+                      : v >= 5
+                        ? "#eab308"
+                        : "#f97316";
+                }
+                return (
+                  <div
+                    key={colIndex}
+                    style={{
+                      ...tableCellStyle,
+                      color,
+                      fontWeight: 800,
+                      textShadow:
+                        color === "#00FF9C"
+                          ? "0 0 8px rgba(0,255,156,0.4)"
+                          : "none",
+                    }}
+                  >
+                    {v || "-"}
+                  </div>
+                );
+              })}
+            </React.Fragment>
           ))}
         </div>
       </div>
-
-      {/* LAST 7 SESSIONS — bar charts */}
-      {last7.length > 0 && (
-        <div
-          style={{
-            ...styles.card,
-            animation: "slideUp 0.6s ease forwards",
-            animationDelay: "0.22s",
-          }}
-        >
-          <div style={styles.sectionHeading}>Last 7 sessions</div>
-          {[
-            ["sleep", "#7B3FF2"],
-            ["soreness", "#f97316"],
-            ["energy", "#00FF9C"],
-            ["motivation", "#eab308"],
-          ].map(([m, color], i) => (
-            <div
-              key={i}
-              style={{
-                marginTop: i === 0 ? 4 : 18,
-                paddingTop: i === 0 ? 0 : 16,
-                borderTop:
-                  i === 0 ? "none" : `1px solid ${COLORS.border}`,
-              }}
-            >
-              <div style={styles.chartMetricLabel}>{m.toUpperCase()}</div>
-              <div style={styles.miniBarsRow}>
-                {last7.map((d, idx) => {
-                  const indexFromOldest = last7.length - 1 - idx;
-                  return (
-                    <div key={idx} style={styles.miniBarColumn}>
-                      <div style={styles.barScore}>{d.score}</div>
-                      <div style={styles.miniBarsTrack}>
-                        <div
-                          style={{
-                            ...styles.miniBarFill,
-                            background: color,
-                            height: `${(d[m] || 0) * 10}%`,
-                            animation:
-                              "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
-                          }}
-                        />
-                      </div>
-                      <div style={styles.barLabel}>
-                        S{indexFromOldest + 1}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* 4-WEEK TREND */}
       {weeklyData.length > 0 && (
@@ -617,80 +632,9 @@ const styles = {
     fontSize: 40,
     fontWeight: 900,
   },
-  sectionHeading: {
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    color: COLORS.muted,
-    marginBottom: 14,
-  },
-  chartMetricLabel: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: COLORS.text,
-    marginBottom: 10,
-    letterSpacing: "0.04em",
-  },
-  metricGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2,1fr)",
-    gap: 16,
-  },
-  metricCard: {
-    background: COLORS.card,
-    border: `1px solid ${COLORS.border}`,
-    padding: 16,
-    borderRadius: 16,
-  },
   metricTitle: {
     fontSize: 12,
     color: COLORS.muted,
-  },
-  metricValue: {
-    fontSize: 22,
-    fontWeight: 800,
-    marginBottom: 10,
-  },
-  miniBarsRow: {
-    display: "flex",
-    gap: 4,
-    alignItems: "flex-end",
-  },
-  miniBarColumn: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4,
-    minWidth: 0,
-  },
-  barScore: {
-    fontSize: 10,
-    fontWeight: 800,
-    color: COLORS.text,
-    textAlign: "center",
-    lineHeight: 1.2,
-  },
-  miniBarsTrack: {
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    height: 60,
-    width: "100%",
-  },
-  miniBarFill: {
-    width: "100%",
-    maxWidth: 28,
-    borderRadius: 4,
-    minHeight: 2,
-    alignSelf: "flex-end",
-  },
-  barLabel: {
-    textAlign: "center",
-    fontSize: 9,
-    color: COLORS.muted,
-    lineHeight: 1.2,
   },
   weekBarsRow: {
     display: "flex",
