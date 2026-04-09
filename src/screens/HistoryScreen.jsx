@@ -23,6 +23,23 @@ function formatDateKey(date) {
   return date.toISOString().split("T")[0];
 }
 
+/** ISO 8601 calendar week key for grouping (e.g. 2025-W03) */
+function isoWeekKey(dateInput) {
+  const d = new Date(dateInput);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+  const week1 = new Date(d.getFullYear(), 0, 4);
+  const week =
+    1 +
+    Math.round(
+      ((d.getTime() - week1.getTime()) / 86400000 -
+        3 +
+        ((week1.getDay() + 6) % 7)) /
+        7
+    );
+  return `${d.getFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
 export default function HistoryScreen({ userId, onBack }) {
   const [data, setData] = useState([]);
   const [profile, setProfile] = useState({});
@@ -120,6 +137,23 @@ export default function HistoryScreen({ userId, onBack }) {
           last7.length
         ).toFixed(1)
       : 0;
+
+  /* ================= 4-WEEK (ISO week) ================= */
+  const weeklyData = useMemo(() => {
+    const weeks = {};
+    data.forEach((d) => {
+      const key = isoWeekKey(d.created_at);
+      if (!weeks[key]) weeks[key] = [];
+      weeks[key].push(d.score);
+    });
+    return Object.entries(weeks)
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .slice(0, 4)
+      .map(([week, scores]) => ({
+        week,
+        avg: (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1),
+      }));
+  }, [data]);
 
   /* ================= PULSE ================= */
   useEffect(() => {
@@ -304,32 +338,61 @@ export default function HistoryScreen({ userId, onBack }) {
             <div style={styles.metricValue}>
               {metricAvg(m)}
             </div>
-            <div style={styles.miniBars}>
+            <div style={styles.miniBarsRow}>
               {last7.map((d, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    ...styles.miniBar,
-                    background: color,
-                    height: `${(d[m] || 0) * 10}%`,
-                    animation:
-                      "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
-                  }}
-                />
-              ))}
-            </div>
-            <div style={styles.barLabelRow}>
-              {last7.map((d, idx) => (
-                <div key={idx} style={styles.barLabel}>
-                  {new Date(d.created_at).toLocaleDateString("en", {
-                    weekday: "short",
-                  })}
+                <div key={idx} style={styles.miniBarColumn}>
+                  <div style={styles.barScore}>{d.score}</div>
+                  <div style={styles.miniBarsTrack}>
+                    <div
+                      style={{
+                        ...styles.miniBarFill,
+                        background: color,
+                        height: `${(d[m] || 0) * 10}%`,
+                        animation:
+                          "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                      }}
+                    />
+                  </div>
+                  <div style={styles.barLabel}>
+                    {new Date(d.created_at).toLocaleDateString("en", {
+                      weekday: "short",
+                    })}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         ))}
       </div>
+
+      {/* 4-WEEK TREND */}
+      {weeklyData.length > 0 && (
+        <div
+          style={{
+            ...styles.card,
+            animation: "slideUp 0.6s ease forwards",
+            animationDelay: "0.25s",
+          }}
+        >
+          <div style={styles.metricTitle}>4-WEEK TREND</div>
+          <div style={styles.weekBarsRow}>
+            {weeklyData.map(({ week, avg }) => (
+              <div key={week} style={styles.weekColumn}>
+                <div style={styles.weekAvg}>{avg}</div>
+                <div style={styles.weekBarTrack}>
+                  <div
+                    style={{
+                      ...styles.weekBarFill,
+                      height: `${(Number(avg) / 10) * 100}%`,
+                    }}
+                  />
+                </div>
+                <div style={styles.weekLabel}>{week}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* PULSE CARD */}
       <div
@@ -348,6 +411,12 @@ export default function HistoryScreen({ userId, onBack }) {
           />
           PULSE
         </div>
+
+        <p style={styles.pulseIntro}>
+          Hi, I&apos;m Pulse — your partner for becoming a better Slifter.
+          <br />
+          Here&apos;s what I see in your recovery this week:
+        </p>
 
         {loadingAI ? (
           <div
@@ -499,28 +568,93 @@ const styles = {
     fontWeight: 800,
     marginBottom: 10,
   },
-  miniBars: {
+  miniBarsRow: {
+    display: "flex",
+    gap: 4,
+    alignItems: "flex-end",
+  },
+  miniBarColumn: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+    minWidth: 0,
+  },
+  barScore: {
+    fontSize: 10,
+    fontWeight: 800,
+    color: COLORS.text,
+    textAlign: "center",
+    lineHeight: 1.2,
+  },
+  miniBarsTrack: {
     display: "flex",
     alignItems: "flex-end",
-    gap: 4,
+    justifyContent: "center",
     height: 60,
+    width: "100%",
   },
-  miniBar: {
-    flex: 1,
+  miniBarFill: {
+    width: "100%",
+    maxWidth: 28,
     borderRadius: 4,
-  },
-  barLabelRow: {
-    display: "flex",
-    gap: 4,
-    marginTop: 6,
-    alignItems: "flex-start",
+    minHeight: 2,
+    alignSelf: "flex-end",
   },
   barLabel: {
-    flex: 1,
     textAlign: "center",
     fontSize: 10,
     color: COLORS.muted,
     lineHeight: 1.2,
+  },
+  weekBarsRow: {
+    display: "flex",
+    gap: 8,
+    alignItems: "flex-end",
+    marginTop: 12,
+  },
+  weekColumn: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 6,
+    minWidth: 0,
+  },
+  weekAvg: {
+    fontSize: 14,
+    fontWeight: 800,
+    color: COLORS.accent,
+  },
+  weekBarTrack: {
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    height: 80,
+    width: "100%",
+  },
+  weekBarFill: {
+    width: "100%",
+    maxWidth: 36,
+    borderRadius: 4,
+    background: `linear-gradient(180deg, ${COLORS.primary}, ${COLORS.accent})`,
+    minHeight: 4,
+    alignSelf: "flex-end",
+  },
+  weekLabel: {
+    fontSize: 9,
+    color: COLORS.muted,
+    textAlign: "center",
+    wordBreak: "break-all",
+    lineHeight: 1.2,
+  },
+  pulseIntro: {
+    margin: "12px 0 0",
+    fontStyle: "italic",
+    color: COLORS.muted,
+    fontSize: 13,
+    lineHeight: 1.55,
   },
   aiBadge: {
     display: "inline-flex",
