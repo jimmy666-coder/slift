@@ -309,6 +309,162 @@ export default function HistoryScreen({ userId, onBack }) {
         </div>
       </div>
 
+      {/* Recovery scores — last 7 sessions */}
+      <div
+        style={{
+          background: "#12121A",
+          borderRadius: 20,
+          padding: 20,
+          marginTop: 20,
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <style>{`
+    @keyframes growBar {
+      from { height: 0; }
+    }
+  `}</style>
+
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 900,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "#7B3FF2",
+            marginBottom: 20,
+          }}
+        >
+          Recovery scores — last 7 sessions
+        </div>
+
+        {(() => {
+          const ordered = [...last7]
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+          const getColor = (score) => {
+            if (score <= 4) return "#f97316";
+            if (score <= 6) return "#eab308";
+            if (score <= 7) return "#d1d5db";
+            if (score <= 8.4) return "#00FF9C";
+            return "#00FF9C";
+          };
+
+          const getLevel = (score) => {
+            if (score <= 4) return "Critical";
+            if (score <= 6) return "Low";
+            if (score <= 7) return "Moderate";
+            if (score <= 8.4) return "Good";
+            return "Peak";
+          };
+
+          const todayScore = ordered[ordered.length - 1]?.score || 0;
+          const todayColor = getColor(todayScore);
+
+          return (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  height: 140,
+                }}
+              >
+                {ordered.map((session, index) => {
+                  const score = session.score;
+                  const height = Math.min(score * 10, 100);
+                  const color = getColor(score);
+
+                  return (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        flex: 1,
+                      }}
+                    >
+                      {/* Score above */}
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          marginBottom: 6,
+                          color,
+                          textShadow:
+                            color === "#00FF9C"
+                              ? "0 0 10px rgba(0,255,156,0.5)"
+                              : "none",
+                        }}
+                      >
+                        {score}
+                      </div>
+
+                      {/* Bar */}
+                      <div
+                        style={{
+                          width: "100%",
+                          maxWidth: 28,
+                          height: height,
+                          maxHeight: 100,
+                          background: color,
+                          borderRadius: 8,
+                          boxShadow: `0 0 12px ${color}`,
+                          animation:
+                            "growBar 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards",
+                        }}
+                      />
+
+                      {/* Session label */}
+                      <div
+                        style={{
+                          marginTop: 8,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#9ca3af",
+                        }}
+                      >
+                        S{index + 1}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Today level indicator */}
+              <div
+                style={{
+                  marginTop: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: todayColor,
+                }}
+              >
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: todayColor,
+                    boxShadow:
+                      todayColor === "#00FF9C"
+                        ? "0 0 10px rgba(0,255,156,0.6)"
+                        : "none",
+                  }}
+                />
+                Today: {getLevel(todayScore)}
+              </div>
+            </>
+          );
+        })()}
+      </div>
+
       {/* SCORE CARD */}
       <div
         style={{
