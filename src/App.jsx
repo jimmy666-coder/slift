@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './lib/supabase'
 import AuthScreen from './screens/AuthScreen'
-import { OnboardingScreen } from './screens/OnboardingScreen'
+import OnboardingScreen from './screens/OnboardingScreen'
 import MorningCheckin from './screens/MorningCheckin'
 import RecoveryScore from './screens/RecoveryScore'
 import WorkoutScreen from './screens/WorkoutScreen'
