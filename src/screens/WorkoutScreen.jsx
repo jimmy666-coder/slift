@@ -447,14 +447,15 @@ export default function WorkoutScreen({
           fallbackSource = getWorkoutExercises(checkinData);
         }
 
+        console.log('Calling AI with muscleGroups:', checkinData?.muscleGroups);
+
         const aiResponse = await generateWorkoutWithAI({
           profile,
           score,
           muscleGroups: checkinData?.muscleGroups || [],
           scoreTier: tierLabel,
-          duration: checkinData?.duration || "60 min",
-          trainingStyle:
-            checkinData?.trainingStyle || "Hypertrophy",
+          duration: checkinData?.duration || '60 min',
+          trainingStyle: checkinData?.trainingStyle || 'Hypertrophy',
         });
 
         const normalized = normalizeWorkout(
