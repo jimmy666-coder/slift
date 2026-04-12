@@ -187,6 +187,7 @@ export default function HistoryScreen({ userId, onBack }) {
         body: JSON.stringify({
           scores: last7.map((d) => d.score),
           userId,
+          nickname: profile.nickname,
         }),
       });
 
