@@ -372,6 +372,7 @@ export default function WorkoutScreen({
   onReset,
   onComplete,
   onHistory,
+  onProfile,
   onGoHome,
 }) {
   const [loading, setLoading] = useState(true);
@@ -975,6 +976,15 @@ export default function WorkoutScreen({
             <button type="button" onClick={onReset} style={headerBtn}>
               New check-in
             </button>
+            {typeof onProfile === "function" && (
+              <button
+                type="button"
+                onClick={onProfile}
+                style={headerBtn}
+              >
+                Profile
+              </button>
+            )}
             <button type="button" onClick={onHistory} style={headerBtn}>
               History
             </button>

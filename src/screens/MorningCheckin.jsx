@@ -81,7 +81,7 @@ function SelectButton({ children, selected, pressed, onPressStart, onPressEnd, o
   );
 }
 
-export default function MorningCheckin({ onComplete, loading = false, initialValues = {}, onGoHome, onHistory }) {
+export default function MorningCheckin({ onComplete, loading = false, initialValues = {}, onGoHome, onHistory, onProfile }) {
   const mergedInitialValues = useMemo(() => ({
     ...defaultValues, ...initialValues,
     muscleGroups: Array.isArray(initialValues?.muscleGroups) && initialValues.muscleGroups.length > 0
@@ -132,6 +132,7 @@ export default function MorningCheckin({ onComplete, loading = false, initialVal
             <div style={styles.kicker}>SLIFT</div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <button type="button" onClick={() => { if (typeof onGoHome === "function") onGoHome(); }} style={styles.homeButton}>Home</button>
+              <button type="button" onClick={() => { if (typeof onProfile === "function") onProfile(); }} style={styles.homeButton}>Profile</button>
               <button type="button" onClick={() => { if (typeof onHistory === "function") onHistory(); }} style={styles.homeButton}>History</button>
               <button type="button" onClick={handleLogout} style={styles.logoutButton}>Log out</button>
             </div>

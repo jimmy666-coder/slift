@@ -8,6 +8,7 @@ import RecoveryScore from './screens/RecoveryScore'
 import WorkoutScreen from './screens/WorkoutScreen'
 import LandingPage from './screens/LandingPage'
 import HistoryScreen from './screens/HistoryScreen'
+import ProfileScreen from './screens/ProfileScreen'
 import WorkoutComplete from './screens/WorkoutComplete'
 
 const SCREEN = {
@@ -16,6 +17,7 @@ const SCREEN = {
   RESET: 'reset',
   ONBOARDING: 'onboarding',
   CHECKIN: 'checkin',
+  PROFILE: 'profile',
   SCORE: 'score',
   WORKOUT: 'workout',
   HISTORY: 'history',
@@ -207,6 +209,7 @@ export default function App() {
           initialValues={profile?.duration ? { duration: profile.duration } : {}}
           onGoHome={() => setScreen(SCREEN.LANDING)}
           onHistory={() => setScreen(SCREEN.HISTORY)}
+          onProfile={() => setScreen(SCREEN.PROFILE)}
         />
       )}
       {screen !== SCREEN.LANDING && screen === SCREEN.SCORE && checkinData && (
@@ -219,6 +222,7 @@ export default function App() {
           profile={profile}
           onGoHome={() => setScreen(SCREEN.LANDING)}
           onHistory={() => setScreen(SCREEN.HISTORY)}
+          onProfile={() => setScreen(SCREEN.PROFILE)}
           onComplete={() => setScreen(SCREEN.COMPLETE)}
         />
       )}
@@ -230,7 +234,17 @@ export default function App() {
         />
       )}
       {screen !== SCREEN.LANDING && screen === SCREEN.HISTORY && user && (
-        <HistoryScreen userId={user.id} onBack={() => setScreen(SCREEN.CHECKIN)} />
+        <HistoryScreen
+          userId={user.id}
+          onBack={() => setScreen(SCREEN.CHECKIN)}
+          onProfile={() => setScreen(SCREEN.PROFILE)}
+        />
+      )}
+      {screen !== SCREEN.LANDING && screen === SCREEN.PROFILE && user && (
+        <ProfileScreen
+          userId={user.id}
+          onBack={() => setScreen(SCREEN.CHECKIN)}
+        />
       )}
     </>
   )

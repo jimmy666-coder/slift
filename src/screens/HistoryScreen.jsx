@@ -46,7 +46,7 @@ function isoWeekKey(dateInput) {
   return `${d.getFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
-export default function HistoryScreen({ userId, onBack }) {
+export default function HistoryScreen({ userId, onBack, onProfile }) {
   const [data, setData] = useState([]);
   const [profile, setProfile] = useState({});
   const [aiMessage, setAiMessage] = useState("");
@@ -317,7 +317,13 @@ export default function HistoryScreen({ userId, onBack }) {
       />
 
       {/* HEADER */}
-      <div style={styles.header}>
+      <div
+        style={{
+          ...styles.header,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <button
           onClick={onBack}
           style={styles.backBtn}
@@ -332,6 +338,23 @@ export default function HistoryScreen({ userId, onBack }) {
         >
           ← Back
         </button>
+        {typeof onProfile === "function" && (
+          <button
+            type="button"
+            onClick={onProfile}
+            style={styles.backBtn}
+            onMouseDown={(e) =>
+              (e.currentTarget.style.transform =
+                "scale(0.97)")
+            }
+            onMouseUp={(e) =>
+              (e.currentTarget.style.transform =
+                "scale(1)")
+            }
+          >
+            Profile
+          </button>
+        )}
       </div>
 
       {/* STREAK CARD */}
