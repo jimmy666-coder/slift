@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 const STEPS = [
   { key: 'firstName', type: 'text', title: "What's your name?", placeholder: 'Enter your first name' },
   { key: 'nickname', type: 'text', title: 'What should we call you?', placeholder: 'Your nickname or preferred name' },
-  { key: 'age', type: 'number', title: 'How old are you?', placeholder: 'Enter your age' },
+  { key: 'birthDate', type: 'date', title: 'When were you born?', placeholder: 'DD/MM/YYYY' },
   { key: 'gender', type: 'select', title: 'What is your gender?', options: ['Male', 'Female', 'Other'] },
   { key: 'weight', type: 'unit-input', title: 'What is your weight?', placeholder: 'Enter your weight', unitsKey: 'weightUnit', units: ['kg', 'lbs'] },
   { key: 'height', type: 'unit-input', title: 'What is your height?', placeholder: 'Enter your height', unitsKey: 'heightUnit', units: ['cm', 'ft'] },
@@ -18,7 +18,7 @@ const STEPS = [
 ]
 
 const initialForm = {
-  firstName: '', nickname: '', age: '', gender: '',
+  firstName: '', nickname: '', birthDate: '', gender: '',
   weight: '', weightUnit: 'kg', height: '', heightUnit: 'cm',
   goal: '', level: '', frequency: '', equipment: '',
   medicalHistory: '', strengthsWeaknesses: '',
@@ -43,7 +43,7 @@ export default function OnboardingScreen({ onComplete, userId }) {
     switch (currentStep.key) {
       case 'firstName': return form.firstName.trim().length > 0
       case 'nickname': return form.nickname.trim().length > 0
-      case 'age': return Number(form.age) > 0
+      case 'birthDate': return form.birthDate.trim().length > 0
       case 'gender': return !!form.gender
       case 'weight': return Number(form.weight) > 0
       case 'height': return Number(form.height) > 0
@@ -139,6 +139,20 @@ export default function OnboardingScreen({ onComplete, userId }) {
   }
 
   const renderInput = () => {
+    if (currentStep.type === 'date') {
+      return (
+        <input
+          autoFocus
+          type="date"
+          value={form[currentStep.key]}
+          onChange={(e) => updateField(currentStep.key, e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={currentStep.placeholder}
+          style={inputStyle}
+        />
+      )
+    }
+
     if (currentStep.type === 'text' || currentStep.type === 'number') {
       if (currentStep.key === 'strengthsWeaknesses') {
         return (
