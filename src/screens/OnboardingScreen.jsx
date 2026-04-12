@@ -94,6 +94,15 @@ export default function OnboardingScreen({ onComplete, userId }) {
     setStepIndex(prev => prev - 1)
   }
 
+  const handleStrengthsDontKnowYet = () => {
+    if (isSaving) return
+    const value = "I don't know yet"
+    setForm(prev => ({ ...prev, strengthsWeaknesses: value }))
+    if (error) setError('')
+    setDirection('forward')
+    setStepIndex(prev => prev + 1)
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && isCurrentStepValid()) handleContinue()
   }
@@ -115,8 +124,45 @@ export default function OnboardingScreen({ onComplete, userId }) {
 
   const inputStyle = { width:'100%', height:60, borderRadius:18, border:'1px solid rgba(255,255,255,0.10)', background:'rgba(255,255,255,0.04)', color:'#FFFFFF', fontSize:18, fontWeight:500, outline:'none', padding:'0 18px', boxSizing:'border-box' }
 
+  const ghostSkipStyle = {
+    alignSelf: 'center',
+    marginTop: 4,
+    border: '1px solid rgba(255,255,255,0.12)',
+    background: 'transparent',
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 15,
+    fontWeight: 600,
+    padding: '12px 20px',
+    borderRadius: 14,
+    cursor: isSaving ? 'not-allowed' : 'pointer',
+    opacity: isSaving ? 0.4 : 1,
+  }
+
   const renderInput = () => {
     if (currentStep.type === 'text' || currentStep.type === 'number') {
+      if (currentStep.key === 'strengthsWeaknesses') {
+        return (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 14 }}>
+            <input
+              autoFocus
+              type={currentStep.type}
+              value={form.strengthsWeaknesses}
+              onChange={e => updateField('strengthsWeaknesses', e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={currentStep.placeholder}
+              style={inputStyle}
+            />
+            <button
+              type="button"
+              onClick={handleStrengthsDontKnowYet}
+              disabled={isSaving}
+              style={ghostSkipStyle}
+            >
+              I don&apos;t know yet
+            </button>
+          </div>
+        )
+      }
       return <input autoFocus type={currentStep.type} value={form[currentStep.key]} onChange={e => updateField(currentStep.key, e.target.value)} onKeyDown={handleKeyDown} placeholder={currentStep.placeholder} style={inputStyle} />
     }
 
