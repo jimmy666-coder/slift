@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from './lib/supabase'
 import AuthScreen from './screens/AuthScreen'
+import ResetPasswordScreen from './screens/ResetPasswordScreen'
 import OnboardingScreen from './screens/OnboardingScreen'
 import MorningCheckin from './screens/MorningCheckin'
 import RecoveryScore from './screens/RecoveryScore'
@@ -12,6 +13,7 @@ import WorkoutComplete from './screens/WorkoutComplete'
 const SCREEN = {
   LANDING: 'landing',
   AUTH: 'auth',
+  RESET: 'reset',
   ONBOARDING: 'onboarding',
   CHECKIN: 'checkin',
   SCORE: 'score',
@@ -28,6 +30,17 @@ export default function App() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const destinationAfterLandingRef = useRef(SCREEN.ONBOARDING)
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setScreen(SCREEN.RESET)
+        }
+      }
+    )
+    return () => authListener.subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     screenRef.current = screen
@@ -130,6 +143,9 @@ export default function App() {
 
   return (
     <>
+      {screen === SCREEN.RESET && (
+        <ResetPasswordScreen onComplete={() => setScreen(SCREEN.AUTH)} />
+      )}
       {screen === SCREEN.LANDING && <LandingPage onGetStarted={handleGetStartedFromLanding} />}
       {screen !== SCREEN.LANDING && screen === SCREEN.AUTH && <AuthScreen />}
       {screen !== SCREEN.LANDING && screen === SCREEN.ONBOARDING && (
