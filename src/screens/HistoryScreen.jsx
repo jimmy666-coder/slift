@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { supabase } from "../lib/supabase";
 
 const COLORS = {
@@ -45,6 +51,15 @@ export default function HistoryScreen({ userId, onBack }) {
   const [profile, setProfile] = useState({});
   const [aiMessage, setAiMessage] = useState("");
   const [loadingAI, setLoadingAI] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
+  const [profileVersion, setProfileVersion] = useState(0);
+  const profileRef = useRef(profile);
+
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   /* ================= FETCH ================= */
   useEffect(() => {
@@ -63,27 +78,44 @@ export default function HistoryScreen({ userId, onBack }) {
     load();
   }, [userId]);
 
-  useEffect(() => {
-    async function loadProfile() {
-      const { data: p } = await supabase
+  const loadProfile = useCallback(async () => {
+    try {
+      setError("");
+      setSuccessMessage("");
+      const { data: p, error: fetchError } = await supabase
         .from("tapeprofiles")
         .select("*")
         .eq("id", userId)
         .single();
-
-      if (!p) return;
-
+      if (fetchError) throw fetchError;
       setProfile({
-        firstName: p.first_name,
-        lastName: p.last_name,
-        nickname: p.nickname,
-        country: p.country,
-        weight: p.weight,
-        height: p.height,
+        firstName: p?.username || "",
+        nickname: p?.nickname || "",
+        country: p?.country || "",
+        birthDate: p?.birth_date || "",
+        gender: p?.gender || "",
+        weight: p?.weight || "",
+        weightUnit: p?.weight_unit || "kg",
+        height: p?.height || "",
+        heightUnit: p?.height_unit || "cm",
+        goal: p?.goal || "",
+        level: p?.level || "",
+        frequency: p?.frequency || "",
+        equipment: p?.equipment || "",
+        medicalHistory: p?.medical_history || "",
+        strengthsWeaknesses: p?.strengths || "",
       });
+      setProfileVersion((v) => v + 1);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load profile.");
+      setProfileVersion((v) => v + 1);
     }
-    loadProfile();
   }, [userId]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   /* ================= STREAK ================= */
   const streak = useMemo(() => {
@@ -187,7 +219,7 @@ export default function HistoryScreen({ userId, onBack }) {
         body: JSON.stringify({
           scores: last7.map((d) => d.score),
           userId,
-          nickname: profile.nickname,
+          nickname: profileRef.current.nickname,
         }),
       });
 
@@ -197,20 +229,41 @@ export default function HistoryScreen({ userId, onBack }) {
     }
 
     loadMessage();
-  }, [userId, last7.length]);
+  }, [userId, last7.length, profileVersion]);
 
   const saveProfile = async () => {
-    await supabase
-      .from("tapeprofiles")
-      .update({
-        first_name: profile.firstName,
-        last_name: profile.lastName,
-        nickname: profile.nickname,
-        country: profile.country,
-        weight: profile.weight,
-        height: profile.height,
-      })
-      .eq("id", userId);
+    try {
+      setIsSaving(true);
+      setError("");
+      setSuccessMessage("");
+      const { error: updateError } = await supabase
+        .from("tapeprofiles")
+        .update({
+          nickname: profile.nickname,
+          country: profile.country,
+          birth_date: profile.birthDate,
+          gender: profile.gender,
+          weight: profile.weight,
+          weight_unit: profile.weightUnit,
+          height: profile.height,
+          height_unit: profile.heightUnit,
+          goal: profile.goal,
+          level: profile.level,
+          frequency: profile.frequency,
+          equipment: profile.equipment,
+          medical_history: profile.medicalHistory,
+          strengths: profile.strengthsWeaknesses,
+        })
+        .eq("id", userId);
+      if (updateError) throw updateError;
+      setSuccessMessage("Profile updated ✓");
+      setProfileVersion((v) => v + 1);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to update profile.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const avatarLetter =
@@ -694,45 +747,247 @@ export default function HistoryScreen({ userId, onBack }) {
           animationDelay: "0.4s",
         }}
       >
-        <div style={styles.avatar}>
-          {avatarLetter}
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: "0.14em",
+            color: COLORS.primary,
+            marginBottom: 6,
+          }}
+        >
+          PROFILE
         </div>
+        <div style={styles.avatar}>{avatarLetter}</div>
 
-        {[
-          "firstName",
-          "lastName",
-          "nickname",
-          "country",
-          "weight",
-          "height",
-        ].map((field, i) => (
+        {error ? (
+          <div
+            style={{
+              color: "#f97316",
+              marginBottom: 12,
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            {error}
+          </div>
+        ) : null}
+        {successMessage ? (
+          <div
+            style={{
+              color: COLORS.accent,
+              marginBottom: 12,
+              fontSize: 14,
+              fontWeight: 700,
+            }}
+          >
+            {successMessage}
+          </div>
+        ) : null}
+
+        <label style={styles.profileLabel}>Username</label>
+        <input
+          readOnly
+          value={profile.firstName || ""}
+          style={{
+            ...styles.input,
+            opacity: 0.65,
+            cursor: "not-allowed",
+          }}
+        />
+
+        <label style={styles.profileLabel}>Nickname</label>
+        <input
+          value={profile.nickname || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, nickname: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Country</label>
+        <input
+          value={profile.country || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, country: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Birth date</label>
+        <input
+          type="date"
+          value={profile.birthDate || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, birthDate: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Gender</label>
+        <input
+          value={profile.gender || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, gender: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Weight</label>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginBottom: 10,
+            alignItems: "stretch",
+          }}
+        >
           <input
-            key={i}
-            placeholder={field}
-            value={profile[field] || ""}
+            type="number"
+            value={profile.weight || ""}
+            onChange={(e) =>
+              setProfile({ ...profile, weight: e.target.value })
+            }
+            style={{ ...styles.input, flex: 1, marginBottom: 0 }}
+          />
+          <select
+            value={profile.weightUnit || "kg"}
             onChange={(e) =>
               setProfile({
                 ...profile,
-                [field]: e.target.value,
+                weightUnit: e.target.value,
               })
             }
-            style={styles.input}
+            style={{
+              ...styles.input,
+              width: 88,
+              marginBottom: 0,
+              cursor: "pointer",
+            }}
+          >
+            <option value="kg">kg</option>
+            <option value="lbs">lbs</option>
+          </select>
+        </div>
+
+        <label style={styles.profileLabel}>Height</label>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginBottom: 10,
+            alignItems: "stretch",
+          }}
+        >
+          <input
+            value={profile.height || ""}
+            onChange={(e) =>
+              setProfile({ ...profile, height: e.target.value })
+            }
+            style={{ ...styles.input, flex: 1, marginBottom: 0 }}
           />
-        ))}
+          <select
+            value={profile.heightUnit || "cm"}
+            onChange={(e) =>
+              setProfile({
+                ...profile,
+                heightUnit: e.target.value,
+              })
+            }
+            style={{
+              ...styles.input,
+              width: 88,
+              marginBottom: 0,
+              cursor: "pointer",
+            }}
+          >
+            <option value="cm">cm</option>
+            <option value="ft">ft</option>
+          </select>
+        </div>
+
+        <label style={styles.profileLabel}>Goal</label>
+        <input
+          value={profile.goal || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, goal: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Level</label>
+        <input
+          value={profile.level || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, level: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Frequency</label>
+        <input
+          value={profile.frequency || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, frequency: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Equipment</label>
+        <input
+          value={profile.equipment || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, equipment: e.target.value })
+          }
+          style={styles.input}
+        />
+
+        <label style={styles.profileLabel}>Medical history</label>
+        <textarea
+          value={profile.medicalHistory || ""}
+          onChange={(e) =>
+            setProfile({
+              ...profile,
+              medicalHistory: e.target.value,
+            })
+          }
+          rows={3}
+          style={styles.textarea}
+        />
+
+        <label style={styles.profileLabel}>
+          Strengths &amp; weaknesses
+        </label>
+        <textarea
+          value={profile.strengthsWeaknesses || ""}
+          onChange={(e) =>
+            setProfile({
+              ...profile,
+              strengthsWeaknesses: e.target.value,
+            })
+          }
+          rows={3}
+          style={styles.textarea}
+        />
 
         <button
-          style={styles.saveBtn}
+          type="button"
+          style={{
+            ...styles.saveBtn,
+            opacity: isSaving ? 0.6 : 1,
+            cursor: isSaving ? "wait" : "pointer",
+          }}
+          disabled={isSaving}
           onClick={saveProfile}
-          onMouseDown={(e) =>
-            (e.currentTarget.style.transform =
-              "scale(0.97)")
-          }
+          onMouseDown={(e) => {
+            if (isSaving) return;
+            e.currentTarget.style.transform = "scale(0.97)";
+          }}
           onMouseUp={(e) =>
-            (e.currentTarget.style.transform =
-              "scale(1)")
+            (e.currentTarget.style.transform = "scale(1)")
           }
         >
-          Save
+          {isSaving ? "Saving…" : "Save"}
         </button>
       </div>
 
@@ -869,6 +1124,16 @@ const styles = {
     fontWeight: 900,
     marginBottom: 20,
   },
+  profileLabel: {
+    display: "block",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    color: COLORS.muted,
+    marginBottom: 6,
+    marginTop: 4,
+  },
   input: {
     width: "100%",
     marginBottom: 10,
@@ -877,6 +1142,21 @@ const styles = {
     border: `1px solid ${COLORS.border}`,
     color: COLORS.text,
     borderRadius: 10,
+    boxSizing: "border-box",
+  },
+  textarea: {
+    width: "100%",
+    marginBottom: 10,
+    padding: 10,
+    background: COLORS.bg,
+    border: `1px solid ${COLORS.border}`,
+    color: COLORS.text,
+    borderRadius: 10,
+    resize: "vertical",
+    minHeight: 72,
+    boxSizing: "border-box",
+    fontFamily: "inherit",
+    fontSize: 14,
   },
   saveBtn: {
     background: COLORS.accent,
