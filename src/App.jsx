@@ -30,16 +30,18 @@ export default function App() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const destinationAfterLandingRef = useRef(SCREEN.ONBOARDING)
+  const recoveryFromHashRef = useRef(false)
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setScreen(SCREEN.RESET)
-        }
-      }
-    )
-    return () => authListener.subscription.unsubscribe()
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace('#', '?'))
+    const type = params.get('type')
+
+    if (type === 'recovery') {
+      recoveryFromHashRef.current = true
+      setScreen(SCREEN.RESET)
+      return
+    }
   }, [])
 
   useEffect(() => {
@@ -87,32 +89,64 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user)
+        if (
+          recoveryFromHashRef.current ||
+          screenRef.current === SCREEN.RESET
+        ) {
+          setLoading(false)
+          return
+        }
         if (screenRef.current === SCREEN.LANDING) {
-          loadTapeProfileForLanding(session.user.id).then(() => setLoading(false))
+          loadTapeProfileForLanding(session.user.id).then(() =>
+            setLoading(false)
+          )
         } else {
           navigateAfterSignIn(session.user.id)
         }
       } else {
-        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
+        setScreen((prev) =>
+          prev === SCREEN.LANDING || prev === SCREEN.RESET
+            ? prev
+            : SCREEN.AUTH
+        )
         setLoading(false)
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        if (screenRef.current === SCREEN.LANDING) {
-          loadTapeProfileForLanding(session.user.id)
-        } else {
-          navigateAfterSignIn(session.user.id)
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          recoveryFromHashRef.current = true
+          setScreen(SCREEN.RESET)
+          setLoading(false)
+          return
         }
-      } else {
-        setUser(null)
-        setScreen((prev) => (prev === SCREEN.LANDING ? prev : SCREEN.AUTH))
+        if (
+          event === 'SIGNED_IN' &&
+          screenRef.current !== SCREEN.RESET &&
+          !recoveryFromHashRef.current
+        ) {
+          if (session?.user) {
+            setUser(session.user)
+            if (screenRef.current === SCREEN.LANDING) {
+              loadTapeProfileForLanding(session.user.id).then(() =>
+                setLoading(false)
+              )
+            } else {
+              navigateAfterSignIn(session.user.id)
+            }
+          }
+          return
+        }
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setScreen(SCREEN.LANDING)
+          setLoading(false)
+        }
       }
-    })
+    )
 
-    return () => subscription.unsubscribe()
+    return () => authListener.subscription.unsubscribe()
   }, [])
 
   function handleGetStartedFromLanding() {
@@ -144,7 +178,12 @@ export default function App() {
   return (
     <>
       {screen === SCREEN.RESET && (
-        <ResetPasswordScreen onComplete={() => setScreen(SCREEN.AUTH)} />
+        <ResetPasswordScreen
+          onComplete={() => {
+            recoveryFromHashRef.current = false
+            setScreen(SCREEN.AUTH)
+          }}
+        />
       )}
       {screen === SCREEN.LANDING && <LandingPage onGetStarted={handleGetStartedFromLanding} />}
       {screen !== SCREEN.LANDING && screen === SCREEN.AUTH && <AuthScreen />}

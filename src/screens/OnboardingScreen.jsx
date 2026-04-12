@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "../lib/supabase";
+import React, { useMemo, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 const STEPS = [
   { key: 'firstName', type: 'text', title: "What's your name?", placeholder: 'Enter your first name' },
+  { key: 'nickname', type: 'text', title: 'What should we call you?', placeholder: 'Your nickname or preferred name' },
   { key: 'age', type: 'number', title: 'How old are you?', placeholder: 'Enter your age' },
   { key: 'gender', type: 'select', title: 'What is your gender?', options: ['Male', 'Female', 'Other'] },
   { key: 'weight', type: 'unit-input', title: 'What is your weight?', placeholder: 'Enter your weight', unitsKey: 'weightUnit', units: ['kg', 'lbs'] },
@@ -10,12 +11,17 @@ const STEPS = [
   { key: 'goal', type: 'select', title: 'What is your main goal?', options: ['Strength', 'Hypertrophy', 'Cut', 'Body Recomposition'] },
   { key: 'level', type: 'select', title: 'What is your training level?', options: ['Beginner', 'Intermediate', 'Advanced'] },
   { key: 'frequency', type: 'select', title: 'How often do you train?', options: ['2x per week', '3x per week', '4x per week', '5x per week', '6x per week'] },
+  { key: 'equipment', type: 'select', title: "What's your setup?", options: ['Full gym', 'Home gym', 'Minimal equipment', 'No equipment'] },
+  { key: 'medicalHistory', type: 'text', title: 'Any injuries or medical conditions?', placeholder: 'e.g. lower back pain, knee injury... or type "None"' },
+  { key: 'strengthsWeaknesses', type: 'text', title: 'Your body — strong points and weak points?', placeholder: 'e.g. strong chest, weak lower back...' },
   { key: 'final', type: 'final', title: "You're all set. SLIFT will adapt to you from day one." },
 ]
 
 const initialForm = {
-  firstName: '', age: '', gender: '', weight: '', weightUnit: 'kg',
-  height: '', heightUnit: 'cm', goal: '', level: '', frequency: '',
+  firstName: '', nickname: '', age: '', gender: '',
+  weight: '', weightUnit: 'kg', height: '', heightUnit: 'cm',
+  goal: '', level: '', frequency: '', equipment: '',
+  medicalHistory: '', strengthsWeaknesses: '',
 }
 
 export default function OnboardingScreen({ onComplete, userId }) {
@@ -36,6 +42,7 @@ export default function OnboardingScreen({ onComplete, userId }) {
   const isCurrentStepValid = () => {
     switch (currentStep.key) {
       case 'firstName': return form.firstName.trim().length > 0
+      case 'nickname': return form.nickname.trim().length > 0
       case 'age': return Number(form.age) > 0
       case 'gender': return !!form.gender
       case 'weight': return Number(form.weight) > 0
@@ -43,6 +50,9 @@ export default function OnboardingScreen({ onComplete, userId }) {
       case 'goal': return !!form.goal
       case 'level': return !!form.level
       case 'frequency': return !!form.frequency
+      case 'equipment': return !!form.equipment
+      case 'medicalHistory': return form.medicalHistory.trim().length > 0
+      case 'strengthsWeaknesses': return form.strengthsWeaknesses.trim().length > 0
       case 'final': return true
       default: return false
     }
@@ -55,6 +65,10 @@ export default function OnboardingScreen({ onComplete, userId }) {
       await supabase.from('tapeprofiles').upsert({
         id: userId,
         username: form.firstName,
+        nickname: form.nickname || form.firstName,
+        equipment: form.equipment,
+        medical_history: form.medicalHistory,
+        strengths: form.strengthsWeaknesses,
         onboarding: form,
         onboarding_completed: true,
         onboarding_completed_at: new Date().toISOString(),
@@ -99,9 +113,9 @@ export default function OnboardingScreen({ onComplete, userId }) {
     )
   }
 
-  const renderInput = () => {
-    const inputStyle = { width:'100%', height:60, borderRadius:18, border:'1px solid rgba(255,255,255,0.10)', background:'rgba(255,255,255,0.04)', color:'#FFFFFF', fontSize:18, fontWeight:500, outline:'none', padding:'0 18px', boxSizing:'border-box' }
+  const inputStyle = { width:'100%', height:60, borderRadius:18, border:'1px solid rgba(255,255,255,0.10)', background:'rgba(255,255,255,0.04)', color:'#FFFFFF', fontSize:18, fontWeight:500, outline:'none', padding:'0 18px', boxSizing:'border-box' }
 
+  const renderInput = () => {
     if (currentStep.type === 'text' || currentStep.type === 'number') {
       return <input autoFocus type={currentStep.type} value={form[currentStep.key]} onChange={e => updateField(currentStep.key, e.target.value)} onKeyDown={handleKeyDown} placeholder={currentStep.placeholder} style={inputStyle} />
     }
@@ -115,7 +129,7 @@ export default function OnboardingScreen({ onComplete, userId }) {
               const selected = form[currentStep.unitsKey] === unit
               return (
                 <button key={unit} type="button" onClick={() => updateField(currentStep.unitsKey, unit)}
-                  style={{ background: selected ? 'linear-gradient(135deg,rgba(123,63,242,1),rgba(0,255,156,0.95))' : 'rgba(255,255,255,0.08)', border:'none', borderRadius:16, padding:1, cursor:'pointer' }}>
+                  style={{ background: selected ? 'linear-gradient(135deg,rgba(123,63,242,1),rgba(0,255,156,0.95))' : 'rgba(255,255,255,0.08)', border:'none', borderRadius:16, padding:1, cursor:'pointer', boxShadow: selected ? '0 10px 26px rgba(123,63,242,0.25)' : 'none' }}>
                   <div style={{ borderRadius:15, padding:'14px 16px', background: selected ? 'linear-gradient(135deg,rgba(123,63,242,0.30),rgba(123,63,242,0.42))' : 'rgba(14,14,20,0.96)', color: selected ? '#FFFFFF' : 'rgba(255,255,255,0.80)', fontSize:15, fontWeight:700 }}>{unit}</div>
                 </button>
               )
@@ -136,7 +150,7 @@ export default function OnboardingScreen({ onComplete, userId }) {
             <span style={{ color:'#0A0A0F', fontSize:30, fontWeight:900 }}>✓</span>
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
-            {[form.firstName||'Profile', form.goal||'Goal', form.level||'Level', form.frequency||'Frequency'].map((item, i) => (
+            {[form.nickname||form.firstName||'Profile', form.goal||'Goal', form.level||'Level', form.frequency||'Frequency', form.equipment||'Setup'].map((item, i) => (
               <div key={i} style={{ padding:'10px 14px', borderRadius:999, border:'1px solid rgba(255,255,255,0.10)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.88)', fontSize:14, fontWeight:600 }}>{item}</div>
             ))}
           </div>
